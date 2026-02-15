@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.tradebridge.backend.auth.AuthenticatedUser;
-import com.tradebridge.backend.auth.InMemoryAuthService;
+import com.tradebridge.backend.jwt.JwtService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,10 +20,10 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class BearerTokenAuthFilter extends OncePerRequestFilter {
 
-    private final InMemoryAuthService authService;
+    private final JwtService jwtService;
 
-    public BearerTokenAuthFilter(InMemoryAuthService authService) {
-        this.authService = authService;
+    public BearerTokenAuthFilter(JwtService jwtService) {
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -32,13 +32,15 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            AuthenticatedUser user = authService.byAccessToken(token);
-            if (user != null) {
+            try {
+                AuthenticatedUser user = jwtService.parseAccessToken(token);
                 var auth = new UsernamePasswordAuthenticationToken(
                         user,
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + user.role().name())));
                 SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (Exception ignored) {
+                SecurityContextHolder.clearContext();
             }
         }
         filterChain.doFilter(request, response);

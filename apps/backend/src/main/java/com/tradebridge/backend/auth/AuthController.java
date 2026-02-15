@@ -13,9 +13,9 @@ import jakarta.validation.Valid;
 @RequestMapping
 public class AuthController {
 
-    private final InMemoryAuthService authService;
+    private final AuthService authService;
 
-    public AuthController(InMemoryAuthService authService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
@@ -41,6 +41,6 @@ public class AuthController {
 
     @PostMapping("/admin/companies/{companyId}/approve")
     public CompanyApprovalResponse approve(@PathVariable String companyId) {
-        return authService.approveCompany(companyId);
+        return authService.approveCompany(companyId, SecurityUtil.currentUser());
     }
 }
