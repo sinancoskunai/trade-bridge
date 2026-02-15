@@ -19,6 +19,8 @@ Default local API is `http://localhost:8080` if `VITE_API_BASE_URL` is not set.
 - Add category attribute (`POST /admin/categories/{id}/attributes`)
 - Broker demo register + approve + login
 - Broker RFQ intervention (`POST /broker/rfqs/{id}/interventions`)
+- Seller demo register + approve + login
+- Seller draft upload + refresh + confirm
 
 ## Scripts
 

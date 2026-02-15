@@ -1,7 +1,7 @@
 import './App.css'
 
 import { useCallback, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 
 type Role = 'BUYER' | 'SELLER' | 'BROKER' | 'ADMIN'
 
@@ -40,7 +40,27 @@ type BrokerInterventionResponse = {
   createdAtEpochMs: number
 }
 
-type ViewMode = 'ADMIN' | 'BROKER'
+type ProductDraftResponse = {
+  draftId: string
+  categoryId: string
+  sellerUserId: string
+  sourceFileName: string
+  parsedFields: Record<string, string>
+  confidence: Record<string, number>
+  status: string
+  parseJobId: string | null
+  lastError: string | null
+}
+
+type ProductResponse = {
+  productId: string
+  categoryId: string
+  sellerCompanyId: string
+  attributes: Record<string, string>
+  active: boolean
+}
+
+type ViewMode = 'ADMIN' | 'BROKER' | 'SELLER'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 const typeOptions = ['STRING', 'NUMBER', 'BOOLEAN', 'ENUM', 'DATE']
@@ -87,6 +107,13 @@ function App() {
   const [rfqId, setRfqId] = useState('')
   const [brokerNote, setBrokerNote] = useState('Iletisim hizlandirma notu')
   const [brokerResult, setBrokerResult] = useState<BrokerInterventionResponse | null>(null)
+
+  const [sellerEmail, setSellerEmail] = useState('')
+  const [sellerPassword, setSellerPassword] = useState('seller123')
+  const [sellerToken, setSellerToken] = useState<string | null>(null)
+  const [sellerFile, setSellerFile] = useState<File | null>(null)
+  const [sellerDraft, setSellerDraft] = useState<ProductDraftResponse | null>(null)
+  const [sellerProduct, setSellerProduct] = useState<ProductResponse | null>(null)
 
   const selectedCategory = useMemo(
     () => categories.find((item) => item.id === selectedCategoryId) ?? null,
@@ -342,10 +369,202 @@ function App() {
     [brokerToken, rfqId, brokerNote],
   )
 
+  const setupDemoSeller = useCallback(async () => {
+    setLoading(true)
+    setMessage('Demo seller olusturuluyor...')
+    try {
+      const nonce = Date.now()
+      const emailToUse = `seller.${nonce}@tradebridge.local`
+      const companyName = `Seller Co ${nonce}`
+
+      const registerResponse = await fetch(`${API_BASE_URL}/auth/register-company`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName,
+          email: emailToUse,
+          password: sellerPassword,
+          role: 'SELLER',
+        }),
+      })
+      if (!registerResponse.ok) {
+        throw await readError(registerResponse, 'Seller kaydi basarisiz')
+      }
+
+      const approval = (await registerResponse.json()) as CompanyApprovalResponse
+      const admin = await login('admin@tradebridge.local', 'admin123')
+      const approveResponse = await fetch(
+        `${API_BASE_URL}/admin/companies/${approval.companyId}/approve`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${admin.accessToken}`,
+          },
+        },
+      )
+      if (!approveResponse.ok) {
+        throw await readError(approveResponse, 'Seller sirket onayi basarisiz')
+      }
+
+      setSellerEmail(emailToUse)
+      setMessage(`Demo seller hazir: ${emailToUse}`)
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'unknown'
+      setMessage(`Hata: ${reason}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [sellerPassword, login])
+
+  const handleSellerLogin = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      setLoading(true)
+      setMessage('Seller login deneniyor...')
+      try {
+        const data = await login(sellerEmail, sellerPassword)
+        if (data.role !== 'SELLER') {
+          throw new Error('Bu hesap seller degil')
+        }
+        setSellerToken(data.accessToken)
+        const listed = await fetchCategories(data.accessToken)
+        setMessage(`Seller login basarili. ${listed.length} kategori yuklendi.`)
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : 'unknown'
+        setMessage(`Hata: ${reason}`)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [sellerEmail, sellerPassword, login, fetchCategories],
+  )
+
+  const handleSellerFile = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const next = event.target.files?.[0] ?? null
+    setSellerFile(next)
+    if (next) {
+      setMessage(`Dosya secildi: ${next.name}`)
+    }
+  }, [])
+
+  const handleSellerUpload = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      if (!sellerToken) {
+        setMessage('Once seller login olmalisin.')
+        return
+      }
+      if (!selectedCategoryId) {
+        setMessage('Kategori secmelisin.')
+        return
+      }
+      if (!sellerFile) {
+        setMessage('Dosya secmelisin.')
+        return
+      }
+
+      setLoading(true)
+      setMessage('Dosya yukleniyor...')
+      try {
+        const formData = new FormData()
+        formData.append('categoryId', selectedCategoryId)
+        formData.append('file', sellerFile)
+
+        const response = await fetch(`${API_BASE_URL}/seller/products/drafts/upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${sellerToken}`,
+          },
+          body: formData,
+        })
+        if (!response.ok) {
+          throw await readError(response, 'Draft upload basarisiz')
+        }
+
+        const draft = (await response.json()) as ProductDraftResponse
+        setSellerDraft(draft)
+        setSellerProduct(null)
+        setMessage(`Draft olustu: ${draft.draftId}`)
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : 'unknown'
+        setMessage(`Hata: ${reason}`)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [sellerToken, selectedCategoryId, sellerFile],
+  )
+
+  const refreshSellerDraft = useCallback(async () => {
+    if (!sellerToken || !sellerDraft) {
+      setMessage('Refresh icin seller login ve draft gerekli.')
+      return
+    }
+
+    setLoading(true)
+    setMessage('Draft yenileniyor...')
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/seller/products/drafts/${sellerDraft.draftId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${sellerToken}`,
+          },
+        },
+      )
+      if (!response.ok) {
+        throw await readError(response, 'Draft yenilenemedi')
+      }
+
+      const draft = (await response.json()) as ProductDraftResponse
+      setSellerDraft(draft)
+      setMessage(`Draft guncel: ${draft.status}`)
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'unknown'
+      setMessage(`Hata: ${reason}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [sellerToken, sellerDraft])
+
+  const confirmSellerDraft = useCallback(async () => {
+    if (!sellerToken || !sellerDraft) {
+      setMessage('Confirm icin seller login ve draft gerekli.')
+      return
+    }
+
+    setLoading(true)
+    setMessage('Draft onaylaniyor...')
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/seller/products/drafts/${sellerDraft.draftId}/confirm`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${sellerToken}`,
+          },
+        },
+      )
+      if (!response.ok) {
+        throw await readError(response, 'Draft confirm basarisiz')
+      }
+
+      const product = (await response.json()) as ProductResponse
+      setSellerProduct(product)
+      setMessage(`Urun yayina alindi: ${product.productId}`)
+      await refreshSellerDraft()
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'unknown'
+      setMessage(`Hata: ${reason}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [sellerToken, sellerDraft, refreshSellerDraft])
+
   return (
     <main className="page">
       <header>
-        <p className="eyebrow">trade-bridge admin + broker</p>
+        <p className="eyebrow">trade-bridge admin + broker + seller</p>
         <h1>Yonetim ve RFQ Mudahale</h1>
         <p className="subtitle">
           API: <code>{API_BASE_URL}</code>
@@ -364,6 +583,13 @@ function App() {
             onClick={() => setViewMode('BROKER')}
           >
             BROKER
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'SELLER' ? 'activeSwitch' : ''}
+            onClick={() => setViewMode('SELLER')}
+          >
+            SELLER
           </button>
         </div>
       </header>
@@ -620,6 +846,118 @@ function App() {
                 <li>
                   <strong>Note</strong>
                   <span>{brokerResult.note}</span>
+                </li>
+              </ul>
+            )}
+          </section>
+        </>
+      )}
+
+      {viewMode === 'SELLER' && (
+        <>
+          <section className="grid two">
+            <article className="card">
+              <h2>1) Demo Seller Setup</h2>
+              <form className="stack" onSubmit={handleSellerLogin}>
+                <label>
+                  Seller Email
+                  <input
+                    value={sellerEmail}
+                    onChange={(event) => setSellerEmail(event.target.value)}
+                    placeholder="ornek: seller.123@tradebridge.local"
+                    required
+                  />
+                </label>
+                <label>
+                  Seller Sifre
+                  <input
+                    type="password"
+                    value={sellerPassword}
+                    onChange={(event) => setSellerPassword(event.target.value)}
+                    required
+                  />
+                </label>
+                <button type="submit" disabled={loading}>
+                  Seller Login
+                </button>
+              </form>
+              <button type="button" onClick={setupDemoSeller} disabled={loading}>
+                Demo Seller Olustur + Onayla
+              </button>
+            </article>
+
+            <article className="card">
+              <h2>2) Draft Upload</h2>
+              <form className="stack" onSubmit={handleSellerUpload}>
+                <label>
+                  Secili Kategori
+                  <select
+                    value={selectedCategoryId}
+                    onChange={(event) => setSelectedCategoryId(event.target.value)}
+                  >
+                    <option value="">Kategori sec</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Dosya (pdf/image/txt)
+                  <input type="file" onChange={handleSellerFile} />
+                </label>
+                <button type="submit" disabled={loading || !sellerToken}>
+                  Draft Upload
+                </button>
+              </form>
+              <div className="stack">
+                <button type="button" onClick={refreshSellerDraft} disabled={loading || !sellerDraft}>
+                  Draft Yenile
+                </button>
+                <button type="button" onClick={confirmSellerDraft} disabled={loading || !sellerDraft}>
+                  Draft Confirm
+                </button>
+              </div>
+            </article>
+          </section>
+
+          <section className="card">
+            <h2>Durum</h2>
+            <p className="meta">{message}</p>
+            {sellerDraft && (
+              <ul className="list">
+                <li>
+                  <strong>Draft ID</strong>
+                  <span>{sellerDraft.draftId}</span>
+                </li>
+                <li>
+                  <strong>Status</strong>
+                  <span>{sellerDraft.status}</span>
+                </li>
+                <li>
+                  <strong>Parse Job</strong>
+                  <span>{sellerDraft.parseJobId ?? '-'}</span>
+                </li>
+                <li>
+                  <strong>Parsed</strong>
+                  <span>{JSON.stringify(sellerDraft.parsedFields)}</span>
+                </li>
+                <li>
+                  <strong>Confidence</strong>
+                  <span>{JSON.stringify(sellerDraft.confidence)}</span>
+                </li>
+              </ul>
+            )}
+            {sellerProduct && (
+              <ul className="list">
+                <li>
+                  <strong>Product ID</strong>
+                  <span>{sellerProduct.productId}</span>
+                </li>
+                <li>
+                  <strong>Attributes</strong>
+                  <span>{JSON.stringify(sellerProduct.attributes)}</span>
                 </li>
               </ul>
             )}
