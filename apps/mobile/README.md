@@ -2,6 +2,14 @@
 
 React Native Expo mobile client for buyer and seller journeys.
 
+## Current MVP flow
+
+- Demo buyer register + admin approve
+- Buyer login
+- Category listing
+- AI Q&A search (`POST /buyer/search/qa`)
+- RFQ create (`POST /buyer/rfqs`)
+
 ## Scripts
 
 - `npm run start`
