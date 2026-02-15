@@ -1,6 +1,8 @@
-package com.tradebridge.backend.auth;
+package com.tradebridge.backend.auth.service.impl;
 
 import org.springframework.stereotype.Component;
+
+import com.tradebridge.backend.auth.service.AuthApplicationService;
 
 import jakarta.annotation.PostConstruct;
 

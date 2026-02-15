@@ -1,4 +1,12 @@
-package com.tradebridge.backend.auth;
+package com.tradebridge.backend.auth.service;
+
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.CompanyApprovalResponse;
+import com.tradebridge.backend.auth.model.LoginRequest;
+import com.tradebridge.backend.auth.model.RefreshRequest;
+import com.tradebridge.backend.auth.model.RegisterCompanyRequest;
+import com.tradebridge.backend.auth.model.TokenResponse;
+import com.tradebridge.backend.auth.model.UserProfileResponse;
 
 public interface AuthApplicationService {
 

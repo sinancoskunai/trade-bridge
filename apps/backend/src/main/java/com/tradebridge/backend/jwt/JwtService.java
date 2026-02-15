@@ -8,7 +8,7 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.tradebridge.backend.auth.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
 import com.tradebridge.backend.common.UserRole;
 
 import io.jsonwebtoken.Claims;

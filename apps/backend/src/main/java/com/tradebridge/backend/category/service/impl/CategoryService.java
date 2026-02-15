@@ -1,4 +1,4 @@
-package com.tradebridge.backend.category;
+package com.tradebridge.backend.category.service.impl;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,10 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradebridge.backend.category.model.CategoryAttributeDefinition;
+import com.tradebridge.backend.category.model.CategoryResponse;
+import com.tradebridge.backend.category.model.CreateCategoryRequest;
 import com.tradebridge.backend.category.persistence.entity.CategoryAttributeEntity;
 import com.tradebridge.backend.category.persistence.repository.CategoryAttributeRepository;
 import com.tradebridge.backend.category.persistence.entity.CategoryEntity;
 import com.tradebridge.backend.category.persistence.repository.CategoryRepository;
+import com.tradebridge.backend.category.service.CategoryApplicationService;
 import com.tradebridge.backend.common.ApiException;
 
 @Service

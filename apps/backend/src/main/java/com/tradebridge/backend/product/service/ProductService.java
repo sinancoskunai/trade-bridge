@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tradebridge.backend.auth.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
 import com.tradebridge.backend.product.model.ProductDraftResponse;
 import com.tradebridge.backend.product.model.ProductResponse;
 import com.tradebridge.backend.product.model.UpdateDraftRequest;

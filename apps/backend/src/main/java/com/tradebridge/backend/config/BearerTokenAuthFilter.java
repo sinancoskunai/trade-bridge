@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.tradebridge.backend.auth.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
 import com.tradebridge.backend.jwt.JwtService;
 
 import jakarta.servlet.FilterChain;

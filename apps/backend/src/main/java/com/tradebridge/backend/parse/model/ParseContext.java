@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.model;
 
 public record ParseContext(
         String categoryId,

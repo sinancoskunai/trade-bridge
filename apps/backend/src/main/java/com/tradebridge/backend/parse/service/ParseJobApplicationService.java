@@ -1,6 +1,8 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service;
 
 import java.util.List;
+
+import com.tradebridge.backend.parse.model.ParseJobResponse;
 
 public interface ParseJobApplicationService {
 

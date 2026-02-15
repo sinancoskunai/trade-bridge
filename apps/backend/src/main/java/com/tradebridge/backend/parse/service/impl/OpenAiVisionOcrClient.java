@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service.impl;
 
 import java.io.IOException;
 import java.net.URI;

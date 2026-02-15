@@ -1,4 +1,4 @@
-package com.tradebridge.backend.notification;
+package com.tradebridge.backend.notification.model;
 
 import jakarta.validation.constraints.NotBlank;
 

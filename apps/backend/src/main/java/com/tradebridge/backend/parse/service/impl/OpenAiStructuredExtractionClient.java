@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service.impl;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tradebridge.backend.category.CategoryAttributeDefinition;
+import com.tradebridge.backend.category.model.CategoryAttributeDefinition;
+import com.tradebridge.backend.parse.model.StructuredExtractionResult;
 
 @Component
 public class OpenAiStructuredExtractionClient {

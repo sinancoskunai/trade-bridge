@@ -1,6 +1,6 @@
 package com.tradebridge.backend.product.service;
 
-import com.tradebridge.backend.parse.ParseResult;
+import com.tradebridge.backend.parse.model.ParseResult;
 import com.tradebridge.backend.product.model.ParseDraftData;
 
 public interface DraftParseWorkflowService {

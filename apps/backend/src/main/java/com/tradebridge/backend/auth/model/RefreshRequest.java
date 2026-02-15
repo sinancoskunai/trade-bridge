@@ -1,4 +1,4 @@
-package com.tradebridge.backend.auth;
+package com.tradebridge.backend.auth.model;
 
 import jakarta.validation.constraints.NotBlank;
 

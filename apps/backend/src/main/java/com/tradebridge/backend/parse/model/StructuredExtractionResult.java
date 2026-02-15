@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.model;
 
 import java.util.Map;
 

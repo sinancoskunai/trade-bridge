@@ -1,6 +1,8 @@
-package com.tradebridge.backend.notification;
+package com.tradebridge.backend.notification.service;
 
 import java.util.List;
+
+import com.tradebridge.backend.notification.model.NotificationResponse;
 
 public interface NotificationApplicationService {
 

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tradebridge.backend.auth.SecurityUtil;
+import com.tradebridge.backend.auth.service.impl.SecurityUtil;
 import com.tradebridge.backend.product.model.ProductDraftResponse;
 import com.tradebridge.backend.product.model.ProductResponse;
 import com.tradebridge.backend.product.model.UpdateDraftRequest;

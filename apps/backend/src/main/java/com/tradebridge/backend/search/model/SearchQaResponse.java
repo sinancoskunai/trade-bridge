@@ -1,4 +1,4 @@
-package com.tradebridge.backend.search;
+package com.tradebridge.backend.search.model;
 
 import java.util.List;
 import java.util.Map;

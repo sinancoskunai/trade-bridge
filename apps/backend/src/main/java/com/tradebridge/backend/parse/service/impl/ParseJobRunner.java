@@ -1,11 +1,15 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service.impl;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.tradebridge.backend.notification.NotificationApplicationService;
+import com.tradebridge.backend.notification.service.NotificationApplicationService;
+import com.tradebridge.backend.parse.model.ParseContext;
+import com.tradebridge.backend.parse.model.ParseJobData;
+import com.tradebridge.backend.parse.model.ParseResult;
 import com.tradebridge.backend.product.model.ParseDraftData;
 import com.tradebridge.backend.product.service.DraftParseWorkflowService;
+import com.tradebridge.backend.parse.service.AiDocumentParser;
 
 @Service
 public class ParseJobRunner {

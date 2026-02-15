@@ -1,4 +1,4 @@
-package com.tradebridge.backend.search;
+package com.tradebridge.backend.search.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.tradebridge.backend.product.model.ProductResponse;
 import com.tradebridge.backend.product.service.ProductService;
+import com.tradebridge.backend.search.model.SearchQaRequest;
+import com.tradebridge.backend.search.model.SearchQaResponse;
+import com.tradebridge.backend.search.service.SearchApplicationService;
 
 @Service
 public class SearchService implements SearchApplicationService {

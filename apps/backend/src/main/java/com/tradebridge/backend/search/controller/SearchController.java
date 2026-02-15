@@ -1,5 +1,8 @@
-package com.tradebridge.backend.search;
+package com.tradebridge.backend.search.controller;
 
+import com.tradebridge.backend.search.service.SearchApplicationService;
+import com.tradebridge.backend.search.model.SearchQaRequest;
+import com.tradebridge.backend.search.model.SearchQaResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

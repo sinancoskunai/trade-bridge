@@ -1,4 +1,4 @@
-package com.tradebridge.backend.notification;
+package com.tradebridge.backend.notification.controller;
 
 import java.util.List;
 
@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradebridge.backend.auth.SecurityUtil;
+import com.tradebridge.backend.auth.service.impl.SecurityUtil;
+import com.tradebridge.backend.notification.model.DeviceTokenRequest;
+import com.tradebridge.backend.notification.model.NotificationResponse;
+import com.tradebridge.backend.notification.service.NotificationApplicationService;
 
 import jakarta.validation.Valid;
 

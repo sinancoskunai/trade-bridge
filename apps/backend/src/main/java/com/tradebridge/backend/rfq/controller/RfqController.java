@@ -1,4 +1,4 @@
-package com.tradebridge.backend.rfq;
+package com.tradebridge.backend.rfq.controller;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -6,7 +6,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradebridge.backend.auth.SecurityUtil;
+import com.tradebridge.backend.auth.service.impl.SecurityUtil;
+import com.tradebridge.backend.rfq.model.BrokerInterventionRequest;
+import com.tradebridge.backend.rfq.model.BrokerInterventionResponse;
+import com.tradebridge.backend.rfq.model.OfferRequest;
+import com.tradebridge.backend.rfq.model.OfferResponse;
+import com.tradebridge.backend.rfq.model.RfqRequest;
+import com.tradebridge.backend.rfq.model.RfqResponse;
+import com.tradebridge.backend.rfq.service.RfqApplicationService;
 
 import jakarta.validation.Valid;
 

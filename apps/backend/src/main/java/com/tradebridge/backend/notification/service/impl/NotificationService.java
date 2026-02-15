@@ -1,4 +1,4 @@
-package com.tradebridge.backend.notification;
+package com.tradebridge.backend.notification.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
+
+import com.tradebridge.backend.notification.model.NotificationResponse;
+import com.tradebridge.backend.notification.service.NotificationApplicationService;
 
 @Service
 public class NotificationService implements NotificationApplicationService {

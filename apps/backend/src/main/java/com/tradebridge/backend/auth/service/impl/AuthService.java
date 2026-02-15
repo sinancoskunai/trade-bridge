@@ -1,4 +1,4 @@
-package com.tradebridge.backend.auth;
+package com.tradebridge.backend.auth.service.impl;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -10,16 +10,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradebridge.backend.audit.AuditLogService;
+import com.tradebridge.backend.audit.service.AuditLogService;
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
 import com.tradebridge.backend.jwt.JwtService;
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.CompanyApprovalResponse;
+import com.tradebridge.backend.auth.model.LoginRequest;
+import com.tradebridge.backend.auth.model.RefreshRequest;
+import com.tradebridge.backend.auth.model.RegisterCompanyRequest;
+import com.tradebridge.backend.auth.model.TokenResponse;
+import com.tradebridge.backend.auth.model.UserProfileResponse;
 import com.tradebridge.backend.auth.persistence.entity.CompanyEntity;
 import com.tradebridge.backend.auth.persistence.repository.CompanyRepository;
 import com.tradebridge.backend.auth.persistence.entity.RefreshTokenEntity;
 import com.tradebridge.backend.auth.persistence.repository.RefreshTokenRepository;
 import com.tradebridge.backend.auth.persistence.entity.UserAccountEntity;
 import com.tradebridge.backend.auth.persistence.repository.UserAccountRepository;
+import com.tradebridge.backend.auth.service.AuthApplicationService;
 
 @Service
 public class AuthService implements AuthApplicationService {

@@ -1,6 +1,10 @@
-package com.tradebridge.backend.category;
+package com.tradebridge.backend.category.service;
 
 import java.util.List;
+
+import com.tradebridge.backend.category.model.CategoryAttributeDefinition;
+import com.tradebridge.backend.category.model.CategoryResponse;
+import com.tradebridge.backend.category.model.CreateCategoryRequest;
 
 public interface CategoryApplicationService {
 

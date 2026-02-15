@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service.impl;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,10 +9,16 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.tradebridge.backend.category.CategoryAttributeDefinition;
-import com.tradebridge.backend.category.CategoryResponse;
-import com.tradebridge.backend.category.CategoryService;
+import com.tradebridge.backend.category.model.CategoryAttributeDefinition;
+import com.tradebridge.backend.category.model.CategoryResponse;
+import com.tradebridge.backend.category.service.CategoryApplicationService;
 import com.tradebridge.backend.common.ApiException;
+import com.tradebridge.backend.parse.model.OcrExtraction;
+import com.tradebridge.backend.parse.model.ParseContext;
+import com.tradebridge.backend.parse.model.ParseResult;
+import com.tradebridge.backend.parse.model.StructuredExtractionResult;
+import com.tradebridge.backend.parse.service.AiDocumentParser;
+import com.tradebridge.backend.parse.service.DocumentOcrService;
 
 @Component
 public class StubAiDocumentParser implements AiDocumentParser {
@@ -20,12 +26,12 @@ public class StubAiDocumentParser implements AiDocumentParser {
     private static final Pattern KG_PATTERN = Pattern.compile("(\\d+(?:[\\.,]\\d+)?)\\s*kg", Pattern.CASE_INSENSITIVE);
 
     private final DocumentOcrService documentOcrService;
-    private final CategoryService categoryService;
+    private final CategoryApplicationService categoryService;
     private final OpenAiStructuredExtractionClient extractionClient;
 
     public StubAiDocumentParser(
             DocumentOcrService documentOcrService,
-            CategoryService categoryService,
+            CategoryApplicationService categoryService,
             OpenAiStructuredExtractionClient extractionClient) {
         this.documentOcrService = documentOcrService;
         this.categoryService = categoryService;

@@ -1,4 +1,4 @@
-package com.tradebridge.backend.audit;
+package com.tradebridge.backend.audit.service;
 
 public interface AuditLogService {
 

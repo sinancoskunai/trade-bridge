@@ -12,13 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tradebridge.backend.auth.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
 import com.tradebridge.backend.category.persistence.entity.CategoryAttributeEntity;
 import com.tradebridge.backend.category.persistence.repository.CategoryAttributeRepository;
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
-import com.tradebridge.backend.parse.DraftStatuses;
-import com.tradebridge.backend.parse.ParseJobApplicationService;
+import com.tradebridge.backend.parse.model.DraftStatuses;
+import com.tradebridge.backend.parse.service.ParseJobApplicationService;
 import com.tradebridge.backend.product.model.ProductDraftResponse;
 import com.tradebridge.backend.product.model.ProductResponse;
 import com.tradebridge.backend.product.model.UpdateDraftRequest;

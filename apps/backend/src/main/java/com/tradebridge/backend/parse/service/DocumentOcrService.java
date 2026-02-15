@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,6 +8,10 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
+
+import com.tradebridge.backend.parse.model.OcrExtraction;
+import com.tradebridge.backend.parse.model.ParseContext;
+import com.tradebridge.backend.parse.service.impl.OpenAiVisionOcrClient;
 
 @Service
 public class DocumentOcrService {

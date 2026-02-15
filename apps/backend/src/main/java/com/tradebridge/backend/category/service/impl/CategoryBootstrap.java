@@ -1,6 +1,8 @@
-package com.tradebridge.backend.category;
+package com.tradebridge.backend.category.service.impl;
 
 import org.springframework.stereotype.Component;
+
+import com.tradebridge.backend.category.service.CategoryApplicationService;
 
 import jakarta.annotation.PostConstruct;
 

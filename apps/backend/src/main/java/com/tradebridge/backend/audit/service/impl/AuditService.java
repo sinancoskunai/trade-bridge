@@ -1,4 +1,4 @@
-package com.tradebridge.backend.audit;
+package com.tradebridge.backend.audit.service.impl;
 
 import java.time.Instant;
 
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.tradebridge.backend.audit.persistence.entity.AuditLogEntity;
 import com.tradebridge.backend.audit.persistence.repository.AuditLogRepository;
-import com.tradebridge.backend.audit.AuditLogService;
+import com.tradebridge.backend.audit.service.AuditLogService;
 
 @Service
 public class AuditService implements AuditLogService {

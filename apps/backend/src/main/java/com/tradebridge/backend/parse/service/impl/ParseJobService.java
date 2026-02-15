@@ -1,8 +1,11 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service.impl;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+
+import com.tradebridge.backend.parse.model.ParseJobResponse;
+import com.tradebridge.backend.parse.service.ParseJobApplicationService;
 
 @Service
 public class ParseJobService implements ParseJobApplicationService {

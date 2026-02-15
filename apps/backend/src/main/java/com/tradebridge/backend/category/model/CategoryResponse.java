@@ -1,4 +1,4 @@
-package com.tradebridge.backend.category;
+package com.tradebridge.backend.category.model;
 
 import java.util.List;
 

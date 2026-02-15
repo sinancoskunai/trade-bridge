@@ -1,6 +1,11 @@
-package com.tradebridge.backend.rfq;
+package com.tradebridge.backend.rfq.service;
 
-import com.tradebridge.backend.auth.AuthenticatedUser;
+import com.tradebridge.backend.auth.model.AuthenticatedUser;
+import com.tradebridge.backend.rfq.model.BrokerInterventionResponse;
+import com.tradebridge.backend.rfq.model.OfferRequest;
+import com.tradebridge.backend.rfq.model.OfferResponse;
+import com.tradebridge.backend.rfq.model.RfqRequest;
+import com.tradebridge.backend.rfq.model.RfqResponse;
 
 public interface RfqApplicationService {
 

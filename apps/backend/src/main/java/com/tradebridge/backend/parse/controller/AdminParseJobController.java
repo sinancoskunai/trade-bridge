@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.controller;
 
 import java.util.List;
 
@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tradebridge.backend.parse.model.ParseJobResponse;
+import com.tradebridge.backend.parse.service.ParseJobApplicationService;
 
 @RestController
 @RequestMapping("/admin/parse-jobs")

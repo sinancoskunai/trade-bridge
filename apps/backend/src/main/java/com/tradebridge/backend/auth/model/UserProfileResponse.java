@@ -1,4 +1,4 @@
-package com.tradebridge.backend.auth;
+package com.tradebridge.backend.auth.model;
 
 import com.tradebridge.backend.common.UserRole;
 

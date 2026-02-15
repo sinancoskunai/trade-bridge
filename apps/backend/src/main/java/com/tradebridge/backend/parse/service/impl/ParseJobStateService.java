@@ -1,4 +1,4 @@
-package com.tradebridge.backend.parse;
+package com.tradebridge.backend.parse.service.impl;
 
 import java.time.Instant;
 import java.util.List;
@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tradebridge.backend.common.ApiException;
+import com.tradebridge.backend.parse.model.ParseJobData;
+import com.tradebridge.backend.parse.model.ParseJobResponse;
+import com.tradebridge.backend.parse.model.ParseStatuses;
 import com.tradebridge.backend.product.persistence.entity.ParseJobEntity;
 import com.tradebridge.backend.product.persistence.repository.ParseJobRepository;
 
