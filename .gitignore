@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+
+# Node
+node_modules/
+.npm/
+.pnpm-store/
+
+# Logs
+*.log
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Build
+build/
+dist/
+out/
+coverage/
+
+# Java
+**/target/
+
+# Expo
+.expo/
+.expo-shared/
+
+# IDE
+.vscode/
+.idea/
+*.iml

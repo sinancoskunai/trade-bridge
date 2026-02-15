@@ -1,0 +1,29 @@
+name: Release Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "deploy environment"
+        required: true
+        default: "staging"
+      image_tag:
+        description: "image tag"
+        required: true
+        default: "latest"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/trade-bridge/infra/deploy
+            export IMAGE_TAG=${{ github.event.inputs.image_tag }}
+            ./deploy.sh .env.${{ github.event.inputs.env }}

@@ -1,0 +1,51 @@
+name: tradebridge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tradebridge-postgres
+    environment:
+      POSTGRES_USER: tradebridge
+      POSTGRES_PASSWORD: tradebridge
+      POSTGRES_DB: tradebridge_app
+    ports:
+      - "54329:5432"
+    volumes:
+      - tradebridge_postgres:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - tradebridge-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: tradebridge-redis
+    ports:
+      - "63799:6379"
+    volumes:
+      - tradebridge_redis:/data
+    networks:
+      - tradebridge-net
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    container_name: tradebridge-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: tradebridge
+      MINIO_ROOT_PASSWORD: tradebridge123
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    volumes:
+      - tradebridge_minio:/data
+    networks:
+      - tradebridge-net
+
+volumes:
+  tradebridge_postgres:
+  tradebridge_redis:
+  tradebridge_minio:
+
+networks:
+  tradebridge-net:
+    name: tradebridge-net

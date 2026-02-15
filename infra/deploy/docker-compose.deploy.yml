@@ -1,0 +1,35 @@
+name: tradebridge
+
+services:
+  backend:
+    image: ghcr.io/${GHCR_OWNER}/trade-bridge/backend:${IMAGE_TAG}
+    container_name: tradebridge-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_DATASOURCE_URL: ${POSTGRES_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_URL: ${REDIS_URL}
+    ports:
+      - "18080:8080"
+    networks:
+      - tradebridge-net
+
+  admin-web:
+    image: ghcr.io/${GHCR_OWNER}/trade-bridge/admin-web:${IMAGE_TAG}
+    container_name: tradebridge-admin-web
+    restart: unless-stopped
+    ports:
+      - "18081:80"
+    depends_on:
+      - backend
+    networks:
+      - tradebridge-net
+
+networks:
+  tradebridge-net:
+    external: true
+    name: tradebridge-net
