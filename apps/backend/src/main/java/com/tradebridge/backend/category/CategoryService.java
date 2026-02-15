@@ -1,69 +1,133 @@
 package com.tradebridge.backend.category;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradebridge.backend.category.persistence.CategoryAttributeEntity;
+import com.tradebridge.backend.category.persistence.CategoryAttributeRepository;
+import com.tradebridge.backend.category.persistence.CategoryEntity;
+import com.tradebridge.backend.category.persistence.CategoryRepository;
 import com.tradebridge.backend.common.ApiException;
 
 @Service
 public class CategoryService {
 
-    private final Map<String, CategoryMutable> categories = new ConcurrentHashMap<>();
+    private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() {
+    };
 
-    public CategoryService() {
-        String id = UUID.randomUUID().toString();
-        CategoryMutable seed = new CategoryMutable(id, "Kuruyemis");
-        seed.attributes.add(new CategoryAttributeDefinition("urun_adi", "STRING", true, null, null, true));
-        seed.attributes.add(new CategoryAttributeDefinition("agirlik_kg", "NUMBER", false, null, "kg", true));
-        categories.put(id, seed);
+    private final CategoryRepository categoryRepository;
+    private final CategoryAttributeRepository categoryAttributeRepository;
+    private final ObjectMapper objectMapper;
+
+    public CategoryService(
+            CategoryRepository categoryRepository,
+            CategoryAttributeRepository categoryAttributeRepository,
+            ObjectMapper objectMapper) {
+        this.categoryRepository = categoryRepository;
+        this.categoryAttributeRepository = categoryAttributeRepository;
+        this.objectMapper = objectMapper;
     }
 
+    @Transactional(readOnly = true)
     public List<CategoryResponse> list() {
-        return categories.values().stream().map(CategoryMutable::toResponse).toList();
+        List<CategoryResponse> out = new ArrayList<>();
+        for (CategoryEntity entity : categoryRepository.findAll()) {
+            out.add(toResponse(entity));
+        }
+        return out;
     }
 
+    @Transactional
     public CategoryResponse create(CreateCategoryRequest request) {
-        String id = UUID.randomUUID().toString();
-        CategoryMutable category = new CategoryMutable(id, request.name());
-        categories.put(id, category);
-        return category.toResponse();
+        categoryRepository.findByNameIgnoreCase(request.name()).ifPresent(existing -> {
+            throw new ApiException(HttpStatus.CONFLICT, "Category already exists");
+        });
+
+        CategoryEntity category = new CategoryEntity();
+        category.setId(UUID.randomUUID().toString());
+        category.setName(request.name());
+        category.setCreatedAt(Instant.now());
+        category.setUpdatedAt(Instant.now());
+
+        categoryRepository.save(category);
+        return toResponse(category);
     }
 
+    @Transactional
     public CategoryResponse addAttribute(String categoryId, CategoryAttributeDefinition attribute) {
-        CategoryMutable category = categories.get(categoryId);
-        if (category == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Category not found");
-        }
-        category.attributes.add(attribute);
-        return category.toResponse();
+        CategoryEntity category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Category not found"));
+
+        CategoryAttributeEntity entity = new CategoryAttributeEntity();
+        entity.setId(UUID.randomUUID().toString());
+        entity.setCategory(category);
+        entity.setAttrKey(attribute.key());
+        entity.setAttrType(attribute.type());
+        entity.setRequired(attribute.required());
+        entity.setEnumValuesJson(toJson(attribute.enumValues()));
+        entity.setUnit(attribute.unit());
+        entity.setFilterable(attribute.filterable());
+        entity.setCreatedAt(Instant.now());
+        entity.setUpdatedAt(Instant.now());
+
+        categoryAttributeRepository.save(entity);
+        return toResponse(category);
     }
 
+    @Transactional(readOnly = true)
     public CategoryResponse getById(String id) {
-        CategoryMutable category = categories.get(id);
-        if (category == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Category not found");
-        }
-        return category.toResponse();
+        CategoryEntity category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Category not found"));
+        return toResponse(category);
     }
 
-    private static final class CategoryMutable {
-        private final String id;
-        private final String name;
-        private final List<CategoryAttributeDefinition> attributes = new ArrayList<>();
+    private CategoryResponse toResponse(CategoryEntity category) {
+        List<CategoryAttributeDefinition> attributes = categoryAttributeRepository
+                .findByCategoryIdOrderByAttrKeyAsc(category.getId())
+                .stream()
+                .map(this::toAttribute)
+                .toList();
+        return new CategoryResponse(category.getId(), category.getName(), attributes);
+    }
 
-        private CategoryMutable(String id, String name) {
-            this.id = id;
-            this.name = name;
+    private CategoryAttributeDefinition toAttribute(CategoryAttributeEntity entity) {
+        return new CategoryAttributeDefinition(
+                entity.getAttrKey(),
+                entity.getAttrType(),
+                entity.isRequired(),
+                fromJson(entity.getEnumValuesJson()),
+                entity.getUnit(),
+                entity.isFilterable());
+    }
+
+    private String toJson(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return null;
         }
+        try {
+            return objectMapper.writeValueAsString(values);
+        } catch (JsonProcessingException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid enum values");
+        }
+    }
 
-        CategoryResponse toResponse() {
-            return new CategoryResponse(id, name, List.copyOf(attributes));
+    private List<String> fromJson(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(json, STRING_LIST);
+        } catch (JsonProcessingException e) {
+            return null;
         }
     }
 }
