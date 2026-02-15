@@ -49,3 +49,8 @@ Draft response now includes:
 
 - `GET /notifications`
 - `POST /notifications/device-token`
+
+## Planned i18n Contract
+
+- Client sends `Accept-Language` (example: `tr-TR`, `en-US`, `zh-CN`)
+- API responds with localized message payloads where applicable

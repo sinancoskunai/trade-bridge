@@ -31,6 +31,7 @@ Trade Bridge connects buyers and sellers through category-based product discover
 - Buyer search-to-RFQ conversion
 - RFQ-to-agreement conversion
 - Parse confidence and correction rate
+- Localization coverage (TR/EN/ZH) on critical journeys
 
 ## Phase Tracking (as of February 16, 2026)
 
@@ -89,3 +90,19 @@ Trade Bridge connects buyers and sellers through category-based product discover
 - [ ] Rate limit and abuse controls
 - [ ] Performance baseline tests
 - [ ] Production observability/alerts
+
+## Language Support Plan
+
+### Product Locales
+
+- Primary: `tr-TR`
+- Secondary: `en-US`
+- Planned: `zh-CN`
+
+### Localization Checklist
+
+- [ ] Backend message localization (`Accept-Language` + message bundles)
+- [ ] Mobile i18n layer (`tr`, `en`, `zh`) and runtime language switch
+- [ ] Admin-web i18n layer (`tr`, `en`, `zh`) and runtime language switch
+- [ ] Category and attribute display names in multilingual format
+- [ ] Seed and fallback strategy (`tr` default, `en` fallback)

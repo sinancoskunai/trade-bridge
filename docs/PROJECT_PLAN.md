@@ -36,6 +36,15 @@
 - [ ] C4. Staging deployment pipeline
 - [ ] C5. Production runbook + rollback drills
 
+### Track D - Localization (i18n)
+
+- [ ] D1. Backend localization foundation (`Accept-Language`, message bundles)
+- [ ] D2. Mobile translation dictionaries (`tr`, `en`, `zh`)
+- [ ] D3. Admin-web translation dictionaries (`tr`, `en`, `zh`)
+- [ ] D4. Language selector and persistence (per user/client)
+- [ ] D5. Category/attribute multilingual labels in API + DB
+- [ ] D6. Localization QA checklist and fallback tests
+
 ## Suggested Calendar (MVP)
 
 ### Sprint 1 (Week 1)
@@ -53,12 +62,18 @@
 
 - B3 RFQ persistence
 - B4 state-machine and test hardening
+- D1 backend localization foundation
+- D2 mobile translations (TR/EN)
 
 ### Sprint 4 (Week 4)
 
 - C3 security/quality gates in CI
 - C4 staging deploy flow
 - C5 runbook + smoke + rollback rehearsal
+- D3 admin-web translations (TR/EN)
+- D4 language selector and persistence
+- D5 multilingual category labels
+- D6 localization QA and zh-CN rollout
 
 ## Exit Criteria for MVP
 

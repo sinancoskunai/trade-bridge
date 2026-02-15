@@ -9,6 +9,7 @@ Bu proje tamamen izole bir yapida kurulur ve tum teknik/urun kararlarini repo ic
 - Backend: Java Spring Boot
 - Mobil: React Native Expo
 - Yonetim: Web panel (Admin + Broker)
+- Dil stratejisi: i18n (`tr-TR` default, `en-US` second, `zh-CN` planned)
 - CI/CD: GitHub Actions + GHCR
 - Deploy: Docker Compose on VPS
 - Gelistirme modeli: Trunk-based + short-lived branches
@@ -164,6 +165,7 @@ Bu proje tamamen izole bir yapida kurulur ve tum teknik/urun kararlarini repo ic
 - Required attribute eksiginde publish engeli
 - Gecersiz state transition engeli
 - Kritik aksiyonlar audit log'a duser
+- TR/EN/ZH lokalizasyon fallback kurallari bozulmaz
 
 ## GitHub ve Hesap Ayrimi
 

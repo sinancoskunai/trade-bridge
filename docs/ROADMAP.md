@@ -18,6 +18,7 @@
 - [x] Dynamic category attributes
 - [x] Seller draft/product baseline
 - [x] Buyer list and filters baseline
+- [ ] Localization data model baseline (`name_i18n`, display labels)
 
 ## Phase 3 - AI Parse + Wizard
 
@@ -39,3 +40,4 @@
 - [ ] Security hardening
 - [ ] Performance and observability
 - [ ] Production readiness
+- [ ] Full TR/EN/ZH localization coverage and QA
