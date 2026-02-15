@@ -15,5 +15,17 @@ Spring Boot API for Trade Bridge domain workflows.
 
 ## Development note
 
-Current implementation uses in-memory stores and token model for phase-0/1 skeleton.
-DB-backed persistence and JWT hardening are tracked for next phases.
+Current implementation is DB-backed (Postgres + Flyway) with JWT auth baseline.
+
+### Parse pipeline flags
+
+- `APP_PARSE_OCR_OPENAI_ENABLED` (default: `false`)
+- `APP_PARSE_OCR_OPENAI_MODEL` (default: `gpt-4o-mini`)
+- `APP_PARSE_EXTRACT_OPENAI_ENABLED` (default: `false`)
+- `APP_PARSE_EXTRACT_OPENAI_MODEL` (default: `gpt-4o-mini`)
+
+To enable model-based extraction:
+
+```bash
+OPENAI_API_KEY=... APP_PARSE_EXTRACT_OPENAI_ENABLED=true ./mvnw spring-boot:run
+```

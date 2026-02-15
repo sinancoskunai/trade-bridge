@@ -1,6 +1,7 @@
 package com.tradebridge.backend.parse;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -8,47 +9,107 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
+import com.tradebridge.backend.category.persistence.CategoryAttributeEntity;
+import com.tradebridge.backend.category.persistence.CategoryAttributeRepository;
+import com.tradebridge.backend.category.persistence.CategoryEntity;
+import com.tradebridge.backend.category.persistence.CategoryRepository;
+
 @Component
 public class StubAiDocumentParser implements AiDocumentParser {
 
     private static final Pattern KG_PATTERN = Pattern.compile("(\\d+(?:[\\.,]\\d+)?)\\s*kg", Pattern.CASE_INSENSITIVE);
 
     private final DocumentOcrService documentOcrService;
+    private final CategoryRepository categoryRepository;
+    private final CategoryAttributeRepository categoryAttributeRepository;
+    private final OpenAiStructuredExtractionClient extractionClient;
 
-    public StubAiDocumentParser(DocumentOcrService documentOcrService) {
+    public StubAiDocumentParser(
+            DocumentOcrService documentOcrService,
+            CategoryRepository categoryRepository,
+            CategoryAttributeRepository categoryAttributeRepository,
+            OpenAiStructuredExtractionClient extractionClient) {
         this.documentOcrService = documentOcrService;
+        this.categoryRepository = categoryRepository;
+        this.categoryAttributeRepository = categoryAttributeRepository;
+        this.extractionClient = extractionClient;
     }
 
     @Override
     public ParseResult parse(ParseContext context) {
-        Map<String, String> fields = new HashMap<>();
-        Map<String, Double> confidence = new HashMap<>();
-
         OcrExtraction extraction = documentOcrService.extract(context);
         String sourceFileName = context.sourceFileName() == null ? "unknown" : context.sourceFileName();
         String normalizedText = normalize(extraction.text());
 
-        String title = inferTitle(sourceFileName, normalizedText);
-        fields.put("urun_adi", title);
-        fields.put("ham_veri_kaynagi", "ai_parse_heuristic_v2");
-        fields.put("ocr_engine", extraction.engine());
+        CategoryEntity category = categoryRepository.findById(context.categoryId()).orElse(null);
+        List<CategoryAttributeEntity> attributes = categoryAttributeRepository
+                .findByCategoryIdOrderByAttrKeyAsc(context.categoryId());
 
-        double titleConfidence = inferTitleConfidence(context.contentType(), extraction.lowConfidence());
-        confidence.put("urun_adi", titleConfidence);
+        Map<String, String> fields = new HashMap<>();
+        Map<String, Double> confidence = new HashMap<>();
+
+        // Heuristic baseline from OCR and file metadata.
+        applyHeuristicBaseline(fields, confidence, sourceFileName, normalizedText, context.contentType(), extraction);
+
+        // Model-based structured extraction overlays heuristic values for known category keys.
+        String categoryName = category == null ? "unknown" : category.getName();
+        StructuredExtractionResult modelResult = extractionClient.extract(
+                categoryName,
+                sourceFileName,
+                normalizedText,
+                attributes);
+
+        for (Map.Entry<String, String> entry : modelResult.fields().entrySet()) {
+            fields.put(entry.getKey(), entry.getValue());
+            confidence.put(entry.getKey(), modelResult.confidence().getOrDefault(entry.getKey(), 0.78));
+        }
+
+        fields.put("ham_veri_kaynagi", modelResult.usedModel() ? "ai_parse_openai_structured_v1" : "ai_parse_heuristic_v2");
+        fields.put("ocr_engine", extraction.engine());
         confidence.put("ham_veri_kaynagi", 0.99);
         confidence.put("ocr_engine", extraction.lowConfidence() ? 0.6 : 0.95);
 
-        String kgSource = (sourceFileName + " " + normalizedText).toLowerCase(Locale.ROOT);
+        boolean missingRequired = hasMissingRequired(attributes, fields);
+        boolean lowConfidence = confidence.values().stream().anyMatch(score -> score < 0.75);
+        boolean reviewRequired = extraction.lowConfidence() || missingRequired || lowConfidence;
+
+        String parserName = modelResult.usedModel() ? "openai-structured-v1" : "heuristic-ocr-v2";
+        return new ParseResult(Map.copyOf(fields), Map.copyOf(confidence), reviewRequired, parserName);
+    }
+
+    private void applyHeuristicBaseline(
+            Map<String, String> fields,
+            Map<String, Double> confidence,
+            String sourceFileName,
+            String ocrText,
+            String contentType,
+            OcrExtraction extraction) {
+        String title = inferTitle(sourceFileName, ocrText);
+        fields.put("urun_adi", title);
+
+        double titleConfidence = inferTitleConfidence(contentType, extraction.lowConfidence());
+        confidence.put("urun_adi", titleConfidence);
+
+        String kgSource = (sourceFileName + " " + ocrText).toLowerCase(Locale.ROOT);
         Matcher kgMatcher = KG_PATTERN.matcher(kgSource);
         if (kgMatcher.find()) {
             String value = kgMatcher.group(1).replace(',', '.');
             fields.put("agirlik_kg", value);
             confidence.put("agirlik_kg", extraction.lowConfidence() ? 0.68 : 0.83);
         }
+    }
 
-        boolean reviewRequired = extraction.lowConfidence()
-                || confidence.values().stream().anyMatch(score -> score < 0.75);
-        return new ParseResult(Map.copyOf(fields), Map.copyOf(confidence), reviewRequired, "heuristic-ocr-v2");
+    private boolean hasMissingRequired(List<CategoryAttributeEntity> attributes, Map<String, String> fields) {
+        for (CategoryAttributeEntity attr : attributes) {
+            if (!attr.isRequired()) {
+                continue;
+            }
+            String value = fields.get(attr.getAttrKey());
+            if (value == null || value.isBlank()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String normalize(String text) {
