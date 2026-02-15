@@ -16,7 +16,8 @@
   - `<feature>/controller`
   - `<feature>/service`
   - `<feature>/service/impl`
-  - `<feature>/persistence`
+  - `<feature>/persistence/entity`
+  - `<feature>/persistence/repository`
   - `<feature>/model`
 - DTOs at API boundary; entities are internal.
 - RBAC checks at endpoint and service level for critical flows.

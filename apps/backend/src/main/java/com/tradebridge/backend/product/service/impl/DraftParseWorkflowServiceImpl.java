@@ -11,10 +11,10 @@ import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.parse.DraftStatuses;
 import com.tradebridge.backend.parse.ParseResult;
 import com.tradebridge.backend.product.model.ParseDraftData;
-import com.tradebridge.backend.product.persistence.DocumentEntity;
-import com.tradebridge.backend.product.persistence.DocumentRepository;
-import com.tradebridge.backend.product.persistence.ProductDraftEntity;
-import com.tradebridge.backend.product.persistence.ProductDraftRepository;
+import com.tradebridge.backend.product.persistence.entity.DocumentEntity;
+import com.tradebridge.backend.product.persistence.repository.DocumentRepository;
+import com.tradebridge.backend.product.persistence.entity.ProductDraftEntity;
+import com.tradebridge.backend.product.persistence.repository.ProductDraftRepository;
 import com.tradebridge.backend.product.service.DraftParseWorkflowService;
 
 @Service
