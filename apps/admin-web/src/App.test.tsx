@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('Admin App', () => {
-  it('renders dashboard title', () => {
+  it('renders category management title', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: 'Yonetim Paneli' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Kategori Yonetimi' })).toBeInTheDocument()
   })
 })
