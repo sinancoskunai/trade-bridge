@@ -14,7 +14,7 @@
 - [x] A2. Seller upload persistence
 - [x] A3. Async parse orchestration
 - [x] A4. Admin parse jobs list + requeue API
-- [ ] A5. OCR adapter (`pdf/image`)
+- [x] A5. OCR adapter baseline (`pdfbox` + optional OpenAI vision)
 - [ ] A6. OpenAI structured extractor (category aware)
 - [ ] A7. Confidence policies and blocking rules
 - [ ] A8. Seller wizard UI and manual correction flow

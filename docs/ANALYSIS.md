@@ -68,9 +68,9 @@ Trade Bridge connects buyers and sellers through category-based product discover
 - [x] Seller upload endpoint persisted to DB (`tb_product_draft`, `tb_document`)
 - [x] Async parse job pipeline (`tb_parse_job`, enqueue + runner)
 - [x] AI parser stub with confidence scoring (`StubAiDocumentParser`)
+- [x] OCR adapter baseline (`PDFBox` for PDF text, optional OpenAI Vision for images)
 - [x] Draft status lifecycle (`PENDING_PARSE -> PARSING -> REVIEW_REQUIRED/READY -> REVIEWED -> CONFIRMED`)
 - [x] Admin parse job ops (`GET /admin/parse-jobs`, `POST /admin/parse-jobs/{id}/requeue`)
-- [ ] Real OCR (pdf/image extraction)
 - [ ] Real OpenAI structured extraction
 - [ ] Seller wizard UI for low-confidence field resolution
 - [ ] Admin parse quality dashboard (error buckets, confidence trend)
