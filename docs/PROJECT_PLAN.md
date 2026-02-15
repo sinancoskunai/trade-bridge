@@ -16,6 +16,7 @@
 - [x] A4. Admin parse jobs list + requeue API
 - [x] A5. OCR adapter baseline (`pdfbox` + optional OpenAI vision)
 - [x] A6. OpenAI structured extractor baseline (category aware, feature-flagged)
+- [x] A6.1 Service boundary refactor (repository access only via services + architecture guard test)
 - [ ] A7. Confidence policies and blocking rules
 - [ ] A8. Seller wizard UI and manual correction flow
 - [ ] A9. Parse telemetry + error analytics

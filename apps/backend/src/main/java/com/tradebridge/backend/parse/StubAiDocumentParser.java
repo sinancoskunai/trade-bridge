@@ -9,10 +9,10 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.tradebridge.backend.category.persistence.CategoryAttributeEntity;
-import com.tradebridge.backend.category.persistence.CategoryAttributeRepository;
-import com.tradebridge.backend.category.persistence.CategoryEntity;
-import com.tradebridge.backend.category.persistence.CategoryRepository;
+import com.tradebridge.backend.category.CategoryAttributeDefinition;
+import com.tradebridge.backend.category.CategoryResponse;
+import com.tradebridge.backend.category.CategoryService;
+import com.tradebridge.backend.common.ApiException;
 
 @Component
 public class StubAiDocumentParser implements AiDocumentParser {
@@ -20,18 +20,15 @@ public class StubAiDocumentParser implements AiDocumentParser {
     private static final Pattern KG_PATTERN = Pattern.compile("(\\d+(?:[\\.,]\\d+)?)\\s*kg", Pattern.CASE_INSENSITIVE);
 
     private final DocumentOcrService documentOcrService;
-    private final CategoryRepository categoryRepository;
-    private final CategoryAttributeRepository categoryAttributeRepository;
+    private final CategoryService categoryService;
     private final OpenAiStructuredExtractionClient extractionClient;
 
     public StubAiDocumentParser(
             DocumentOcrService documentOcrService,
-            CategoryRepository categoryRepository,
-            CategoryAttributeRepository categoryAttributeRepository,
+            CategoryService categoryService,
             OpenAiStructuredExtractionClient extractionClient) {
         this.documentOcrService = documentOcrService;
-        this.categoryRepository = categoryRepository;
-        this.categoryAttributeRepository = categoryAttributeRepository;
+        this.categoryService = categoryService;
         this.extractionClient = extractionClient;
     }
 
@@ -41,9 +38,8 @@ public class StubAiDocumentParser implements AiDocumentParser {
         String sourceFileName = context.sourceFileName() == null ? "unknown" : context.sourceFileName();
         String normalizedText = normalize(extraction.text());
 
-        CategoryEntity category = categoryRepository.findById(context.categoryId()).orElse(null);
-        List<CategoryAttributeEntity> attributes = categoryAttributeRepository
-                .findByCategoryIdOrderByAttrKeyAsc(context.categoryId());
+        CategoryResponse category = loadCategorySafely(context.categoryId());
+        List<CategoryAttributeDefinition> attributes = category == null ? List.of() : category.attributes();
 
         Map<String, String> fields = new HashMap<>();
         Map<String, Double> confidence = new HashMap<>();
@@ -52,7 +48,7 @@ public class StubAiDocumentParser implements AiDocumentParser {
         applyHeuristicBaseline(fields, confidence, sourceFileName, normalizedText, context.contentType(), extraction);
 
         // Model-based structured extraction overlays heuristic values for known category keys.
-        String categoryName = category == null ? "unknown" : category.getName();
+        String categoryName = category == null ? "unknown" : category.name();
         StructuredExtractionResult modelResult = extractionClient.extract(
                 categoryName,
                 sourceFileName,
@@ -99,17 +95,25 @@ public class StubAiDocumentParser implements AiDocumentParser {
         }
     }
 
-    private boolean hasMissingRequired(List<CategoryAttributeEntity> attributes, Map<String, String> fields) {
-        for (CategoryAttributeEntity attr : attributes) {
-            if (!attr.isRequired()) {
+    private boolean hasMissingRequired(List<CategoryAttributeDefinition> attributes, Map<String, String> fields) {
+        for (CategoryAttributeDefinition attr : attributes) {
+            if (!Boolean.TRUE.equals(attr.required())) {
                 continue;
             }
-            String value = fields.get(attr.getAttrKey());
+            String value = fields.get(attr.key());
             if (value == null || value.isBlank()) {
                 return true;
             }
         }
         return false;
+    }
+
+    private CategoryResponse loadCategorySafely(String categoryId) {
+        try {
+            return categoryService.getById(categoryId);
+        } catch (ApiException ex) {
+            return null;
+        }
     }
 
     private String normalize(String text) {

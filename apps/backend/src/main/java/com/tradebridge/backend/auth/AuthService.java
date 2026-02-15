@@ -159,6 +159,33 @@ public class AuthService {
         return new UserProfileResponse(user.userId(), user.companyId(), user.email(), user.role(), user.companyApproved());
     }
 
+    @Transactional
+    public void ensurePlatformAdminUser() {
+        String adminEmail = "admin@tradebridge.local";
+        if (userAccountRepository.findByEmailIgnoreCase(adminEmail).isPresent()) {
+            return;
+        }
+
+        CompanyEntity platform = new CompanyEntity();
+        platform.setId(UUID.randomUUID().toString());
+        platform.setName("Trade Bridge Platform");
+        platform.setApproved(true);
+        platform.setCreatedAt(Instant.now());
+        platform.setUpdatedAt(Instant.now());
+        companyRepository.save(platform);
+
+        UserAccountEntity admin = new UserAccountEntity();
+        admin.setId(UUID.randomUUID().toString());
+        admin.setCompany(platform);
+        admin.setEmail(adminEmail);
+        admin.setPasswordHash(passwordEncoder.encode("admin123"));
+        admin.setRole(UserRole.ADMIN);
+        admin.setActive(true);
+        admin.setCreatedAt(Instant.now());
+        admin.setUpdatedAt(Instant.now());
+        userAccountRepository.save(admin);
+    }
+
     private String issueRefreshToken(UserAccountEntity user) {
         String refreshToken = "rt_" + UUID.randomUUID();
 

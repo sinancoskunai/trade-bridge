@@ -9,6 +9,8 @@
 ## Backend
 
 - Layering: controller -> service -> repository.
+- Repository access is allowed only inside `@Service` classes.
+- Orchestration classes (runner/parser/bootstrap/controller) must call services, not repositories.
 - DTOs at API boundary; entities are internal.
 - RBAC checks at endpoint and service level for critical flows.
 

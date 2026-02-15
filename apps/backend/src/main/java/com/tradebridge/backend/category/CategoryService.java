@@ -90,6 +90,23 @@ public class CategoryService {
         return toResponse(category);
     }
 
+    @Transactional
+    public void ensureDefaultCategory() {
+        if (categoryRepository.findByNameIgnoreCase("Kuruyemis").isPresent()) {
+            return;
+        }
+
+        CategoryEntity category = new CategoryEntity();
+        category.setId(UUID.randomUUID().toString());
+        category.setName("Kuruyemis");
+        category.setCreatedAt(Instant.now());
+        category.setUpdatedAt(Instant.now());
+        categoryRepository.save(category);
+
+        addDefaultAttribute(category, "urun_adi", "STRING", true, null, true);
+        addDefaultAttribute(category, "agirlik_kg", "NUMBER", false, "kg", true);
+    }
+
     private CategoryResponse toResponse(CategoryEntity category) {
         List<CategoryAttributeDefinition> attributes = categoryAttributeRepository
                 .findByCategoryIdOrderByAttrKeyAsc(category.getId())
@@ -97,6 +114,27 @@ public class CategoryService {
                 .map(this::toAttribute)
                 .toList();
         return new CategoryResponse(category.getId(), category.getName(), attributes);
+    }
+
+    private void addDefaultAttribute(
+            CategoryEntity category,
+            String key,
+            String type,
+            boolean required,
+            String unit,
+            boolean filterable) {
+        CategoryAttributeEntity entity = new CategoryAttributeEntity();
+        entity.setId(UUID.randomUUID().toString());
+        entity.setCategory(category);
+        entity.setAttrKey(key);
+        entity.setAttrType(type);
+        entity.setRequired(required);
+        entity.setEnumValuesJson(null);
+        entity.setUnit(unit);
+        entity.setFilterable(filterable);
+        entity.setCreatedAt(Instant.now());
+        entity.setUpdatedAt(Instant.now());
+        categoryAttributeRepository.save(entity);
     }
 
     private CategoryAttributeDefinition toAttribute(CategoryAttributeEntity entity) {

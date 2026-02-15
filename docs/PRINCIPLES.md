@@ -5,3 +5,4 @@
 3. Human confirmation before publishing AI parsed records.
 4. Auditability for high-impact actions.
 5. Isolation from other projects at runtime and CI/CD levels.
+6. Service boundary integrity: repositories are consumed only by services.

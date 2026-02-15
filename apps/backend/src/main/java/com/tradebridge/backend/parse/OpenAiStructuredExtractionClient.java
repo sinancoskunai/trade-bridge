@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tradebridge.backend.category.persistence.CategoryAttributeEntity;
+import com.tradebridge.backend.category.CategoryAttributeDefinition;
 
 @Component
 public class OpenAiStructuredExtractionClient {
@@ -49,13 +49,14 @@ public class OpenAiStructuredExtractionClient {
             String categoryName,
             String sourceFileName,
             String ocrText,
-            List<CategoryAttributeEntity> attributes) {
+            List<CategoryAttributeDefinition> attributes) {
 
         if (!enabled || apiKey == null || apiKey.isBlank() || "test-key".equals(apiKey)) {
             return new StructuredExtractionResult(Map.of(), Map.of(), false, model);
         }
 
-        Set<String> allowedKeys = attributes.stream().map(CategoryAttributeEntity::getAttrKey).collect(java.util.stream.Collectors.toSet());
+        Set<String> allowedKeys = attributes.stream().map(CategoryAttributeDefinition::key)
+                .collect(java.util.stream.Collectors.toSet());
         if (allowedKeys.isEmpty()) {
             return new StructuredExtractionResult(Map.of(), Map.of(), false, model);
         }
@@ -118,18 +119,18 @@ public class OpenAiStructuredExtractionClient {
             String categoryName,
             String sourceFileName,
             String ocrText,
-            List<CategoryAttributeEntity> attributes) throws IOException {
+            List<CategoryAttributeDefinition> attributes) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("Category: ").append(categoryName).append("\n");
         sb.append("Source file: ").append(sourceFileName).append("\n");
         sb.append("Allowed attributes (key,type,required,unit,enumValues):\n");
 
-        for (CategoryAttributeEntity attr : attributes) {
-            sb.append("- ").append(attr.getAttrKey())
-                    .append(", type=").append(attr.getAttrType())
-                    .append(", required=").append(attr.isRequired())
-                    .append(", unit=").append(attr.getUnit() == null ? "" : attr.getUnit())
-                    .append(", enumValues=").append(attr.getEnumValuesJson() == null ? "" : attr.getEnumValuesJson())
+        for (CategoryAttributeDefinition attr : attributes) {
+            sb.append("- ").append(attr.key())
+                    .append(", type=").append(attr.type())
+                    .append(", required=").append(Boolean.TRUE.equals(attr.required()))
+                    .append(", unit=").append(attr.unit() == null ? "" : attr.unit())
+                    .append(", enumValues=").append(attr.enumValues() == null ? "" : String.join(",", attr.enumValues()))
                     .append("\n");
         }
 

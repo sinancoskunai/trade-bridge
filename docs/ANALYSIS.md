@@ -71,6 +71,8 @@ Trade Bridge connects buyers and sellers through category-based product discover
 - [x] AI parser stub with confidence scoring (`StubAiDocumentParser`)
 - [x] OCR adapter baseline (`PDFBox` for PDF text, optional OpenAI Vision for images)
 - [x] Category-aware OpenAI structured extraction baseline (feature-flagged)
+- [x] Service-layer repository boundary refactor (`ParseJobRunner`, `StubAiDocumentParser`, bootstraps now service-driven)
+- [x] Architecture guard test for repository access (`RepositoryAccessRulesTest` / ArchUnit)
 - [x] Draft status lifecycle (`PENDING_PARSE -> PARSING -> REVIEW_REQUIRED/READY -> REVIEWED -> CONFIRMED`)
 - [x] Admin parse job ops (`GET /admin/parse-jobs`, `POST /admin/parse-jobs/{id}/requeue`)
 - [ ] Seller wizard UI for low-confidence field resolution
