@@ -1,4 +1,4 @@
-package com.tradebridge.backend.product;
+package com.tradebridge.backend.product.service.impl;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -10,19 +10,21 @@ import org.springframework.stereotype.Service;
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.parse.DraftStatuses;
 import com.tradebridge.backend.parse.ParseResult;
+import com.tradebridge.backend.product.model.ParseDraftData;
 import com.tradebridge.backend.product.persistence.DocumentEntity;
 import com.tradebridge.backend.product.persistence.DocumentRepository;
 import com.tradebridge.backend.product.persistence.ProductDraftEntity;
 import com.tradebridge.backend.product.persistence.ProductDraftRepository;
+import com.tradebridge.backend.product.service.DraftParseWorkflowService;
 
 @Service
-public class DraftParseWorkflowService {
+public class DraftParseWorkflowServiceImpl implements DraftParseWorkflowService {
 
     private final ProductDraftRepository productDraftRepository;
     private final DocumentRepository documentRepository;
     private final JsonMapCodec jsonMapCodec;
 
-    public DraftParseWorkflowService(
+    public DraftParseWorkflowServiceImpl(
             ProductDraftRepository productDraftRepository,
             DocumentRepository documentRepository,
             JsonMapCodec jsonMapCodec) {
@@ -31,6 +33,7 @@ public class DraftParseWorkflowService {
         this.jsonMapCodec = jsonMapCodec;
     }
 
+    @Override
     public ParseDraftData loadForParsing(String draftId) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
@@ -47,6 +50,7 @@ public class DraftParseWorkflowService {
                 document.getStoragePath());
     }
 
+    @Override
     public void markParsing(String draftId) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
@@ -56,6 +60,7 @@ public class DraftParseWorkflowService {
         productDraftRepository.save(draft);
     }
 
+    @Override
     public void applyParseResult(String draftId, ParseResult result) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
@@ -73,6 +78,7 @@ public class DraftParseWorkflowService {
         productDraftRepository.save(draft);
     }
 
+    @Override
     public void markFailed(String draftId, String error) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId).orElse(null);
         if (draft == null) {

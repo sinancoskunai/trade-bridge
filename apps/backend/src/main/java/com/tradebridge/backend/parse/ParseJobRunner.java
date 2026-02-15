@@ -4,8 +4,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.tradebridge.backend.notification.NotificationService;
-import com.tradebridge.backend.product.DraftParseWorkflowService;
-import com.tradebridge.backend.product.ParseDraftData;
+import com.tradebridge.backend.product.model.ParseDraftData;
+import com.tradebridge.backend.product.service.DraftParseWorkflowService;
 
 @Service
 public class ParseJobRunner {

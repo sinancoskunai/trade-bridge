@@ -1,4 +1,4 @@
-package com.tradebridge.backend.product;
+package com.tradebridge.backend.product.service.impl;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -19,17 +19,21 @@ import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
 import com.tradebridge.backend.parse.DraftStatuses;
 import com.tradebridge.backend.parse.ParseJobService;
+import com.tradebridge.backend.product.model.ProductDraftResponse;
+import com.tradebridge.backend.product.model.ProductResponse;
+import com.tradebridge.backend.product.model.UpdateDraftRequest;
 import com.tradebridge.backend.product.persistence.DocumentEntity;
 import com.tradebridge.backend.product.persistence.DocumentRepository;
 import com.tradebridge.backend.product.persistence.ProductDraftEntity;
 import com.tradebridge.backend.product.persistence.ProductDraftRepository;
 import com.tradebridge.backend.product.persistence.ProductEntity;
 import com.tradebridge.backend.product.persistence.ProductRepository;
+import com.tradebridge.backend.product.service.ProductService;
 import com.tradebridge.backend.storage.DocumentStorageService;
 import com.tradebridge.backend.storage.StoredFile;
 
 @Service
-public class ProductService {
+public class ProductServiceImpl implements ProductService {
 
     private final ProductDraftRepository productDraftRepository;
     private final ProductRepository productRepository;
@@ -39,7 +43,7 @@ public class ProductService {
     private final CategoryAttributeRepository categoryAttributeRepository;
     private final JsonMapCodec jsonMapCodec;
 
-    public ProductService(
+    public ProductServiceImpl(
             ProductDraftRepository productDraftRepository,
             ProductRepository productRepository,
             DocumentRepository documentRepository,
@@ -56,6 +60,7 @@ public class ProductService {
         this.jsonMapCodec = jsonMapCodec;
     }
 
+    @Override
     public ProductDraftResponse createDraft(AuthenticatedUser user, String categoryId, MultipartFile file) {
         if (user.role() != UserRole.SELLER) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Only SELLER can upload drafts");
@@ -104,6 +109,7 @@ public class ProductService {
         return toDraftResponse(draft);
     }
 
+    @Override
     public ProductDraftResponse getDraft(String draftId, AuthenticatedUser user) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
@@ -113,6 +119,7 @@ public class ProductService {
         return toDraftResponse(draft);
     }
 
+    @Override
     public ProductDraftResponse updateDraft(String draftId, UpdateDraftRequest request, AuthenticatedUser user) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
@@ -136,6 +143,7 @@ public class ProductService {
         return toDraftResponse(draft);
     }
 
+    @Override
     public ProductResponse confirmDraft(String draftId, AuthenticatedUser user) {
         ProductDraftEntity draft = productDraftRepository.findById(draftId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
@@ -170,6 +178,7 @@ public class ProductService {
         return toProductResponse(product);
     }
 
+    @Override
     public List<ProductResponse> listProducts(String categoryId, String query) {
         List<ProductEntity> entities;
         if (categoryId == null || categoryId.isBlank()) {

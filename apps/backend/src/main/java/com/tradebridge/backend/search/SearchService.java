@@ -7,8 +7,8 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.tradebridge.backend.product.ProductResponse;
-import com.tradebridge.backend.product.ProductService;
+import com.tradebridge.backend.product.model.ProductResponse;
+import com.tradebridge.backend.product.service.ProductService;
 
 @Service
 public class SearchService {

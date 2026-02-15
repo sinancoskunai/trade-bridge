@@ -1,4 +1,4 @@
-package com.tradebridge.backend.product;
+package com.tradebridge.backend.product.service.impl;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package com.tradebridge.backend.product;
+package com.tradebridge.backend.product.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tradebridge.backend.auth.SecurityUtil;
+import com.tradebridge.backend.product.model.ProductDraftResponse;
+import com.tradebridge.backend.product.model.ProductResponse;
+import com.tradebridge.backend.product.model.UpdateDraftRequest;
+import com.tradebridge.backend.product.service.ProductService;
 
 import jakarta.validation.Valid;
 

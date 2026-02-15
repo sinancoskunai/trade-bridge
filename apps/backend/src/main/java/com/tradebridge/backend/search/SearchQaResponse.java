@@ -3,7 +3,7 @@ package com.tradebridge.backend.search;
 import java.util.List;
 import java.util.Map;
 
-import com.tradebridge.backend.product.ProductResponse;
+import com.tradebridge.backend.product.model.ProductResponse;
 
 public record SearchQaResponse(
         Map<String, String> interpretedFilters,
