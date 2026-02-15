@@ -9,6 +9,10 @@ React Native Expo mobile client for buyer and seller journeys.
 - Category listing
 - AI Q&A search (`POST /buyer/search/qa`)
 - RFQ create (`POST /buyer/rfqs`)
+- Demo seller register + admin approve
+- Seller login
+- Seller upload file (`pdf/image/txt`) and draft parsing
+- Seller draft confirm (`POST /seller/products/drafts/{draftId}/confirm`)
 
 ## Scripts
 
