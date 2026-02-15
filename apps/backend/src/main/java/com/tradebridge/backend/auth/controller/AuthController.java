@@ -13,9 +13,9 @@ import jakarta.validation.Valid;
 @RequestMapping
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthApplicationService authService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthApplicationService authService) {
         this.authService = authService;
     }
 

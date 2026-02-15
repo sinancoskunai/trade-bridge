@@ -14,9 +14,9 @@ import jakarta.validation.Valid;
 @RequestMapping
 public class RfqController {
 
-    private final RfqService rfqService;
+    private final RfqApplicationService rfqService;
 
-    public RfqController(RfqService rfqService) {
+    public RfqController(RfqApplicationService rfqService) {
         this.rfqService = rfqService;
     }
 

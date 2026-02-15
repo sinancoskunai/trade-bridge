@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CategoryController {
 
-    private final CategoryService categoryService;
+    private final CategoryApplicationService categoryService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryApplicationService categoryService) {
         this.categoryService = categoryService;
     }
 

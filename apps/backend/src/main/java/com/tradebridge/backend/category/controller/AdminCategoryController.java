@@ -12,9 +12,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/admin/categories")
 public class AdminCategoryController {
 
-    private final CategoryService categoryService;
+    private final CategoryApplicationService categoryService;
 
-    public AdminCategoryController(CategoryService categoryService) {
+    public AdminCategoryController(CategoryApplicationService categoryService) {
         this.categoryService = categoryService;
     }
 

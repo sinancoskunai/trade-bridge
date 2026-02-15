@@ -6,9 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.tradebridge.backend.audit.persistence.entity.AuditLogEntity;
 import com.tradebridge.backend.audit.persistence.repository.AuditLogRepository;
+import com.tradebridge.backend.audit.AuditLogService;
 
 @Service
-public class AuditService {
+public class AuditService implements AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
 
@@ -16,6 +17,7 @@ public class AuditService {
         this.auditLogRepository = auditLogRepository;
     }
 
+    @Override
     public void log(String actorUserId, String companyId, String action, String details) {
         AuditLogEntity log = new AuditLogEntity();
         log.setActorUserId(actorUserId);

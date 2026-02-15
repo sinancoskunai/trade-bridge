@@ -3,7 +3,7 @@ package com.tradebridge.backend.parse;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.tradebridge.backend.notification.NotificationService;
+import com.tradebridge.backend.notification.NotificationApplicationService;
 import com.tradebridge.backend.product.model.ParseDraftData;
 import com.tradebridge.backend.product.service.DraftParseWorkflowService;
 
@@ -13,13 +13,13 @@ public class ParseJobRunner {
     private final ParseJobStateService parseJobStateService;
     private final DraftParseWorkflowService draftParseWorkflowService;
     private final AiDocumentParser parser;
-    private final NotificationService notificationService;
+    private final NotificationApplicationService notificationService;
 
     public ParseJobRunner(
             ParseJobStateService parseJobStateService,
             DraftParseWorkflowService draftParseWorkflowService,
             AiDocumentParser parser,
-            NotificationService notificationService) {
+            NotificationApplicationService notificationService) {
         this.parseJobStateService = parseJobStateService;
         this.draftParseWorkflowService = draftParseWorkflowService;
         this.parser = parser;

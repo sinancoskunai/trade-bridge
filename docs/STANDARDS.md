@@ -9,6 +9,7 @@
 ## Backend
 
 - Layering: controller -> service -> repository.
+- Controllers depend on service interfaces; implementations stay under `service/impl`.
 - Repository access is allowed only inside `@Service` classes.
 - Orchestration classes (runner/parser/bootstrap/controller) must call services, not repositories.
 - Packaging: package-by-feature with explicit subpackages.

@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradebridge.backend.audit.AuditService;
+import com.tradebridge.backend.audit.AuditLogService;
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
 import com.tradebridge.backend.jwt.JwtService;
@@ -22,14 +22,14 @@ import com.tradebridge.backend.auth.persistence.entity.UserAccountEntity;
 import com.tradebridge.backend.auth.persistence.repository.UserAccountRepository;
 
 @Service
-public class AuthService {
+public class AuthService implements AuthApplicationService {
 
     private final CompanyRepository companyRepository;
     private final UserAccountRepository userAccountRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuditService auditService;
+    private final AuditLogService auditService;
     private final Duration accessTokenTtl;
     private final Duration refreshTokenTtl;
 
@@ -39,7 +39,7 @@ public class AuthService {
             RefreshTokenRepository refreshTokenRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            AuditService auditService,
+            AuditLogService auditService,
             @Value("${app.security.access-token-minutes}") long accessTokenMinutes,
             @Value("${app.security.refresh-token-days}") long refreshTokenDays) {
         this.companyRepository = companyRepository;
@@ -52,6 +52,7 @@ public class AuthService {
         this.refreshTokenTtl = Duration.ofDays(refreshTokenDays);
     }
 
+    @Override
     @Transactional
     public CompanyApprovalResponse registerCompany(RegisterCompanyRequest request) {
         if (request.role() == UserRole.ADMIN) {
@@ -84,6 +85,7 @@ public class AuthService {
         return new CompanyApprovalResponse(company.getId(), false);
     }
 
+    @Override
     @Transactional
     public CompanyApprovalResponse approveCompany(String companyId, AuthenticatedUser adminUser) {
         if (adminUser.role() != UserRole.ADMIN) {
@@ -100,6 +102,7 @@ public class AuthService {
         return new CompanyApprovalResponse(company.getId(), true);
     }
 
+    @Override
     @Transactional
     public TokenResponse login(LoginRequest request) {
         UserAccountEntity user = userAccountRepository.findByEmailIgnoreCase(request.email())
@@ -129,6 +132,7 @@ public class AuthService {
         return new TokenResponse(accessToken, refreshToken, user.getId(), user.getCompany().getId(), user.getRole());
     }
 
+    @Override
     @Transactional
     public TokenResponse refresh(RefreshRequest request) {
         RefreshTokenEntity storedToken = refreshTokenRepository.findById(request.refreshToken())
@@ -155,10 +159,12 @@ public class AuthService {
         return new TokenResponse(accessToken, refreshToken, user.getId(), user.getCompany().getId(), user.getRole());
     }
 
+    @Override
     public UserProfileResponse profile(AuthenticatedUser user) {
         return new UserProfileResponse(user.userId(), user.companyId(), user.email(), user.role(), user.companyApproved());
     }
 
+    @Override
     @Transactional
     public void ensurePlatformAdminUser() {
         String adminEmail = "admin@tradebridge.local";

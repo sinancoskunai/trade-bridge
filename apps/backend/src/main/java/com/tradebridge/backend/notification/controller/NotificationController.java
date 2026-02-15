@@ -16,9 +16,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/notifications")
 public class NotificationController {
 
-    private final NotificationService notificationService;
+    private final NotificationApplicationService notificationService;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationApplicationService notificationService) {
         this.notificationService = notificationService;
     }
 

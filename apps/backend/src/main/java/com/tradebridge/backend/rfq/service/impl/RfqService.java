@@ -10,19 +10,20 @@ import org.springframework.stereotype.Service;
 import com.tradebridge.backend.auth.AuthenticatedUser;
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
-import com.tradebridge.backend.notification.NotificationService;
+import com.tradebridge.backend.notification.NotificationApplicationService;
 
 @Service
-public class RfqService {
+public class RfqService implements RfqApplicationService {
 
     private final Map<String, RfqMutable> rfqs = new ConcurrentHashMap<>();
     private final Map<String, OfferMutable> offers = new ConcurrentHashMap<>();
-    private final NotificationService notificationService;
+    private final NotificationApplicationService notificationService;
 
-    public RfqService(NotificationService notificationService) {
+    public RfqService(NotificationApplicationService notificationService) {
         this.notificationService = notificationService;
     }
 
+    @Override
     public RfqResponse createRfq(AuthenticatedUser buyer, RfqRequest request) {
         if (buyer.role() != UserRole.BUYER) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Only BUYER can create RFQ");
@@ -34,6 +35,7 @@ public class RfqService {
         return rfq.toResponse();
     }
 
+    @Override
     public OfferResponse createOffer(AuthenticatedUser seller, String rfqId, OfferRequest request) {
         if (seller.role() != UserRole.SELLER) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Only SELLER can offer");
@@ -51,6 +53,7 @@ public class RfqService {
         return offer.toResponse();
     }
 
+    @Override
     public OfferResponse counterOffer(AuthenticatedUser buyer, String offerId, OfferRequest request) {
         OfferMutable offer = mustOffer(offerId);
         RfqMutable rfq = mustRfq(offer.rfqId);
@@ -69,6 +72,7 @@ public class RfqService {
         return offer.toResponse();
     }
 
+    @Override
     public OfferResponse accept(AuthenticatedUser buyer, String offerId) {
         OfferMutable offer = mustOffer(offerId);
         RfqMutable rfq = mustRfq(offer.rfqId);
@@ -81,6 +85,7 @@ public class RfqService {
         return offer.toResponse();
     }
 
+    @Override
     public OfferResponse reject(AuthenticatedUser buyer, String offerId) {
         OfferMutable offer = mustOffer(offerId);
         RfqMutable rfq = mustRfq(offer.rfqId);
@@ -92,6 +97,7 @@ public class RfqService {
         return offer.toResponse();
     }
 
+    @Override
     public BrokerInterventionResponse intervene(AuthenticatedUser broker, String rfqId, String note) {
         if (broker.role() != UserRole.BROKER && broker.role() != UserRole.ADMIN) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Only BROKER or ADMIN can intervene");

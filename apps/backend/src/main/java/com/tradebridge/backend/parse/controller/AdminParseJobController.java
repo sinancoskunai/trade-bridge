@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin/parse-jobs")
 public class AdminParseJobController {
 
-    private final ParseJobService parseJobService;
+    private final ParseJobApplicationService parseJobService;
 
-    public AdminParseJobController(ParseJobService parseJobService) {
+    public AdminParseJobController(ParseJobApplicationService parseJobService) {
         this.parseJobService = parseJobService;
     }
 

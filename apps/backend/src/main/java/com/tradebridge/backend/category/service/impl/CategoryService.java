@@ -19,7 +19,7 @@ import com.tradebridge.backend.category.persistence.repository.CategoryRepositor
 import com.tradebridge.backend.common.ApiException;
 
 @Service
-public class CategoryService {
+public class CategoryService implements CategoryApplicationService {
 
     private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() {
     };
@@ -37,6 +37,7 @@ public class CategoryService {
         this.objectMapper = objectMapper;
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> list() {
         List<CategoryResponse> out = new ArrayList<>();
@@ -46,6 +47,7 @@ public class CategoryService {
         return out;
     }
 
+    @Override
     @Transactional
     public CategoryResponse create(CreateCategoryRequest request) {
         categoryRepository.findByNameIgnoreCase(request.name()).ifPresent(existing -> {
@@ -62,6 +64,7 @@ public class CategoryService {
         return toResponse(category);
     }
 
+    @Override
     @Transactional
     public CategoryResponse addAttribute(String categoryId, CategoryAttributeDefinition attribute) {
         CategoryEntity category = categoryRepository.findById(categoryId)
@@ -83,6 +86,7 @@ public class CategoryService {
         return toResponse(category);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public CategoryResponse getById(String id) {
         CategoryEntity category = categoryRepository.findById(id)
@@ -90,6 +94,7 @@ public class CategoryService {
         return toResponse(category);
     }
 
+    @Override
     @Transactional
     public void ensureDefaultCategory() {
         if (categoryRepository.findByNameIgnoreCase("Kuruyemis").isPresent()) {

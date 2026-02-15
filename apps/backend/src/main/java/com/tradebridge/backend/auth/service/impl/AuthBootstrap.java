@@ -7,9 +7,9 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class AuthBootstrap {
 
-    private final AuthService authService;
+    private final AuthApplicationService authService;
 
-    public AuthBootstrap(AuthService authService) {
+    public AuthBootstrap(AuthApplicationService authService) {
         this.authService = authService;
     }
 

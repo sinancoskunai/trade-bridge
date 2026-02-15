@@ -11,9 +11,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/buyer/search")
 public class SearchController {
 
-    private final SearchService searchService;
+    private final SearchApplicationService searchService;
 
-    public SearchController(SearchService searchService) {
+    public SearchController(SearchApplicationService searchService) {
         this.searchService = searchService;
     }
 

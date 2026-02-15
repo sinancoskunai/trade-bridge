@@ -18,7 +18,7 @@ import com.tradebridge.backend.category.persistence.repository.CategoryAttribute
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
 import com.tradebridge.backend.parse.DraftStatuses;
-import com.tradebridge.backend.parse.ParseJobService;
+import com.tradebridge.backend.parse.ParseJobApplicationService;
 import com.tradebridge.backend.product.model.ProductDraftResponse;
 import com.tradebridge.backend.product.model.ProductResponse;
 import com.tradebridge.backend.product.model.UpdateDraftRequest;
@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final DocumentRepository documentRepository;
     private final DocumentStorageService documentStorageService;
-    private final ParseJobService parseJobService;
+    private final ParseJobApplicationService parseJobService;
     private final CategoryAttributeRepository categoryAttributeRepository;
     private final JsonMapCodec jsonMapCodec;
 
@@ -48,7 +48,7 @@ public class ProductServiceImpl implements ProductService {
             ProductRepository productRepository,
             DocumentRepository documentRepository,
             DocumentStorageService documentStorageService,
-            ParseJobService parseJobService,
+            ParseJobApplicationService parseJobService,
             CategoryAttributeRepository categoryAttributeRepository,
             JsonMapCodec jsonMapCodec) {
         this.productDraftRepository = productDraftRepository;

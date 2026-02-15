@@ -11,7 +11,7 @@ import com.tradebridge.backend.product.model.ProductResponse;
 import com.tradebridge.backend.product.service.ProductService;
 
 @Service
-public class SearchService {
+public class SearchService implements SearchApplicationService {
 
     private final ProductService productService;
 
@@ -19,6 +19,7 @@ public class SearchService {
         this.productService = productService;
     }
 
+    @Override
     public SearchQaResponse ask(SearchQaRequest request) {
         Map<String, String> interpreted = new HashMap<>();
         interpreted.put("queryText", request.queryText());

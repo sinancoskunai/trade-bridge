@@ -7,9 +7,9 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class CategoryBootstrap {
 
-    private final CategoryService categoryService;
+    private final CategoryApplicationService categoryService;
 
-    public CategoryBootstrap(CategoryService categoryService) {
+    public CategoryBootstrap(CategoryApplicationService categoryService) {
         this.categoryService = categoryService;
     }
 
