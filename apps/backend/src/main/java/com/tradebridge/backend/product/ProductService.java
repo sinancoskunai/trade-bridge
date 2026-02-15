@@ -1,149 +1,229 @@
 package com.tradebridge.backend.product;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tradebridge.backend.auth.AuthenticatedUser;
+import com.tradebridge.backend.category.persistence.CategoryAttributeEntity;
+import com.tradebridge.backend.category.persistence.CategoryAttributeRepository;
 import com.tradebridge.backend.common.ApiException;
 import com.tradebridge.backend.common.UserRole;
-import com.tradebridge.backend.notification.NotificationService;
+import com.tradebridge.backend.parse.DraftStatuses;
+import com.tradebridge.backend.parse.ParseJobService;
+import com.tradebridge.backend.product.persistence.DocumentEntity;
+import com.tradebridge.backend.product.persistence.DocumentRepository;
+import com.tradebridge.backend.product.persistence.ProductDraftEntity;
+import com.tradebridge.backend.product.persistence.ProductDraftRepository;
+import com.tradebridge.backend.product.persistence.ProductEntity;
+import com.tradebridge.backend.product.persistence.ProductRepository;
+import com.tradebridge.backend.storage.DocumentStorageService;
+import com.tradebridge.backend.storage.StoredFile;
 
 @Service
 public class ProductService {
 
-    private final Map<String, DraftMutable> drafts = new ConcurrentHashMap<>();
-    private final Map<String, ProductMutable> products = new ConcurrentHashMap<>();
-    private final NotificationService notificationService;
+    private final ProductDraftRepository productDraftRepository;
+    private final ProductRepository productRepository;
+    private final DocumentRepository documentRepository;
+    private final DocumentStorageService documentStorageService;
+    private final ParseJobService parseJobService;
+    private final CategoryAttributeRepository categoryAttributeRepository;
+    private final JsonMapCodec jsonMapCodec;
 
-    public ProductService(NotificationService notificationService) {
-        this.notificationService = notificationService;
+    public ProductService(
+            ProductDraftRepository productDraftRepository,
+            ProductRepository productRepository,
+            DocumentRepository documentRepository,
+            DocumentStorageService documentStorageService,
+            ParseJobService parseJobService,
+            CategoryAttributeRepository categoryAttributeRepository,
+            JsonMapCodec jsonMapCodec) {
+        this.productDraftRepository = productDraftRepository;
+        this.productRepository = productRepository;
+        this.documentRepository = documentRepository;
+        this.documentStorageService = documentStorageService;
+        this.parseJobService = parseJobService;
+        this.categoryAttributeRepository = categoryAttributeRepository;
+        this.jsonMapCodec = jsonMapCodec;
     }
 
     public ProductDraftResponse createDraft(AuthenticatedUser user, String categoryId, MultipartFile file) {
         if (user.role() != UserRole.SELLER) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Only SELLER can upload drafts");
         }
-        String draftId = UUID.randomUUID().toString();
-        DraftMutable draft = new DraftMutable();
-        draft.draftId = draftId;
-        draft.categoryId = categoryId;
-        draft.sellerUserId = user.userId();
-        draft.sellerCompanyId = user.companyId();
-        draft.sourceFileName = file.getOriginalFilename() == null ? "unknown" : file.getOriginalFilename();
-        draft.status = "DRAFT";
+        if (file.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Upload file is empty");
+        }
 
-        String defaultTitle = draft.sourceFileName.replaceAll("\\.[^.]+$", "");
-        draft.parsedFields.put("urun_adi", defaultTitle);
-        draft.parsedFields.put("ham_veri_kaynagi", "ai_parse_stub");
-        draft.confidence.put("urun_adi", 0.82);
-        draft.confidence.put("ham_veri_kaynagi", 0.95);
+        ProductDraftEntity draft = new ProductDraftEntity();
+        draft.setId(UUID.randomUUID().toString());
+        draft.setCategoryId(categoryId);
+        draft.setSellerUserId(user.userId());
+        draft.setSellerCompanyId(user.companyId());
+        draft.setSourceFileName(file.getOriginalFilename() == null ? "unknown" : file.getOriginalFilename());
+        draft.setStatus(DraftStatuses.PENDING_PARSE);
+        draft.setParsedFieldsJson(jsonMapCodec.writeStringMap(Map.of()));
+        draft.setConfidenceJson(jsonMapCodec.writeDoubleMap(Map.of()));
+        draft.setCreatedAt(Instant.now());
+        draft.setUpdatedAt(Instant.now());
+        draft.setLastError(null);
+        productDraftRepository.save(draft);
 
-        drafts.put(draftId, draft);
-        notificationService.push(user.userId(), "DOC_PARSE_COMPLETED",
-                "Dokuman parse tamamlandi. Draft ID: " + draftId);
-        return draft.toResponse();
+        StoredFile storedFile;
+        try {
+            storedFile = documentStorageService.store(draft.getId(), file);
+        } catch (IOException ex) {
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store upload file");
+        }
+
+        DocumentEntity document = new DocumentEntity();
+        document.setId(UUID.randomUUID().toString());
+        document.setDraftId(draft.getId());
+        document.setFileName(draft.getSourceFileName());
+        document.setContentType(storedFile.contentType());
+        document.setFileSize(storedFile.fileSize());
+        document.setStoragePath(storedFile.storagePath());
+        document.setCreatedAt(Instant.now());
+        documentRepository.save(document);
+
+        String parseJobId = parseJobService.createJob(draft.getId());
+        draft.setParseJobId(parseJobId);
+        draft.setUpdatedAt(Instant.now());
+        productDraftRepository.save(draft);
+        parseJobService.enqueue(parseJobId);
+
+        return toDraftResponse(draft);
     }
 
     public ProductDraftResponse getDraft(String draftId, AuthenticatedUser user) {
-        DraftMutable draft = drafts.get(draftId);
-        if (draft == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Draft not found");
-        }
-        if (!draft.sellerUserId.equals(user.userId()) && user.role() != UserRole.ADMIN) {
+        ProductDraftEntity draft = productDraftRepository.findById(draftId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
+        if (!draft.getSellerUserId().equals(user.userId()) && user.role() != UserRole.ADMIN) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Draft is not accessible");
         }
-        return draft.toResponse();
+        return toDraftResponse(draft);
     }
 
     public ProductDraftResponse updateDraft(String draftId, UpdateDraftRequest request, AuthenticatedUser user) {
-        DraftMutable draft = drafts.get(draftId);
-        if (draft == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Draft not found");
-        }
-        if (!draft.sellerUserId.equals(user.userId())) {
+        ProductDraftEntity draft = productDraftRepository.findById(draftId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
+        if (!draft.getSellerUserId().equals(user.userId())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Draft is not editable");
         }
-        draft.parsedFields.clear();
-        draft.parsedFields.putAll(request.parsedFields());
-        draft.status = "REVIEWED";
-        return draft.toResponse();
+
+        Map<String, String> parsed = new HashMap<>(request.parsedFields());
+        Map<String, Double> confidence = new HashMap<>(jsonMapCodec.readDoubleMap(draft.getConfidenceJson()));
+
+        for (String key : parsed.keySet()) {
+            confidence.put(key, 1.0);
+        }
+
+        draft.setParsedFieldsJson(jsonMapCodec.writeStringMap(parsed));
+        draft.setConfidenceJson(jsonMapCodec.writeDoubleMap(confidence));
+        draft.setStatus(DraftStatuses.REVIEWED);
+        draft.setUpdatedAt(Instant.now());
+        draft.setLastError(null);
+        productDraftRepository.save(draft);
+        return toDraftResponse(draft);
     }
 
     public ProductResponse confirmDraft(String draftId, AuthenticatedUser user) {
-        DraftMutable draft = drafts.get(draftId);
-        if (draft == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Draft not found");
-        }
-        if (!draft.sellerUserId.equals(user.userId())) {
+        ProductDraftEntity draft = productDraftRepository.findById(draftId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Draft not found"));
+        if (!draft.getSellerUserId().equals(user.userId())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Draft is not confirmable");
         }
-        if (!draft.parsedFields.containsKey("urun_adi") || draft.parsedFields.get("urun_adi").isBlank()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Required field urun_adi is missing");
+
+        Map<String, String> parsedFields = jsonMapCodec.readStringMap(draft.getParsedFieldsJson());
+        Map<String, Double> confidence = jsonMapCodec.readDoubleMap(draft.getConfidenceJson());
+
+        validateRequiredFields(draft.getCategoryId(), parsedFields);
+        long lowConfidence = confidence.values().stream().filter(score -> score < 0.75).count();
+        if (lowConfidence > 0 && !DraftStatuses.REVIEWED.equals(draft.getStatus())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Low confidence fields exist. Review draft before confirming");
         }
 
-        String productId = UUID.randomUUID().toString();
-        ProductMutable product = new ProductMutable();
-        product.productId = productId;
-        product.categoryId = draft.categoryId;
-        product.sellerCompanyId = draft.sellerCompanyId;
-        product.attributes.putAll(draft.parsedFields);
-        product.active = true;
-        products.put(productId, product);
-        draft.status = "CONFIRMED";
+        ProductEntity product = new ProductEntity();
+        product.setId(UUID.randomUUID().toString());
+        product.setCategoryId(draft.getCategoryId());
+        product.setSellerCompanyId(draft.getSellerCompanyId());
+        product.setAttributesJson(jsonMapCodec.writeStringMap(parsedFields));
+        product.setActive(true);
+        product.setCreatedAt(Instant.now());
+        product.setUpdatedAt(Instant.now());
+        productRepository.save(product);
 
-        return product.toResponse();
+        draft.setStatus(DraftStatuses.CONFIRMED);
+        draft.setUpdatedAt(Instant.now());
+        productDraftRepository.save(draft);
+
+        return toProductResponse(product);
     }
 
     public List<ProductResponse> listProducts(String categoryId, String query) {
+        List<ProductEntity> entities;
+        if (categoryId == null || categoryId.isBlank()) {
+            entities = productRepository.findByActiveTrue();
+        } else {
+            entities = productRepository.findByCategoryIdAndActiveTrue(categoryId);
+        }
+
         List<ProductResponse> out = new ArrayList<>();
-        for (ProductMutable product : products.values()) {
-            if (categoryId != null && !categoryId.isBlank() && !categoryId.equals(product.categoryId)) {
-                continue;
-            }
+        for (ProductEntity entity : entities) {
+            ProductResponse response = toProductResponse(entity);
             if (query != null && !query.isBlank()) {
-                String title = product.attributes.getOrDefault("urun_adi", "").toLowerCase();
+                String title = response.attributes().getOrDefault("urun_adi", "").toLowerCase();
                 if (!title.contains(query.toLowerCase())) {
                     continue;
                 }
             }
-            out.add(product.toResponse());
+            out.add(response);
         }
         return out;
     }
 
-    private static final class DraftMutable {
-        private String draftId;
-        private String categoryId;
-        private String sellerUserId;
-        private String sellerCompanyId;
-        private String sourceFileName;
-        private final Map<String, String> parsedFields = new HashMap<>();
-        private final Map<String, Double> confidence = new HashMap<>();
-        private String status;
-
-        ProductDraftResponse toResponse() {
-            return new ProductDraftResponse(draftId, categoryId, sellerUserId, sourceFileName, Map.copyOf(parsedFields),
-                    Map.copyOf(confidence), status);
+    private void validateRequiredFields(String categoryId, Map<String, String> parsedFields) {
+        List<CategoryAttributeEntity> attributes = categoryAttributeRepository.findByCategoryIdOrderByAttrKeyAsc(categoryId);
+        for (CategoryAttributeEntity attr : attributes) {
+            if (!attr.isRequired()) {
+                continue;
+            }
+            String value = parsedFields.get(attr.getAttrKey());
+            if (value == null || value.isBlank()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Required field " + attr.getAttrKey() + " is missing");
+            }
         }
     }
 
-    private static final class ProductMutable {
-        private String productId;
-        private String categoryId;
-        private String sellerCompanyId;
-        private final Map<String, String> attributes = new HashMap<>();
-        private boolean active;
+    private ProductDraftResponse toDraftResponse(ProductDraftEntity draft) {
+        return new ProductDraftResponse(
+                draft.getId(),
+                draft.getCategoryId(),
+                draft.getSellerUserId(),
+                draft.getSourceFileName(),
+                Map.copyOf(jsonMapCodec.readStringMap(draft.getParsedFieldsJson())),
+                Map.copyOf(jsonMapCodec.readDoubleMap(draft.getConfidenceJson())),
+                draft.getStatus(),
+                draft.getParseJobId(),
+                draft.getLastError());
+    }
 
-        ProductResponse toResponse() {
-            return new ProductResponse(productId, categoryId, sellerCompanyId, Map.copyOf(attributes), active);
-        }
+    private ProductResponse toProductResponse(ProductEntity entity) {
+        return new ProductResponse(
+                entity.getId(),
+                entity.getCategoryId(),
+                entity.getSellerCompanyId(),
+                Map.copyOf(jsonMapCodec.readStringMap(entity.getAttributesJson())),
+                entity.isActive());
     }
 }

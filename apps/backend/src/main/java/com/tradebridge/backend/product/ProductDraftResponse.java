@@ -9,5 +9,7 @@ public record ProductDraftResponse(
         String sourceFileName,
         Map<String, String> parsedFields,
         Map<String, Double> confidence,
-        String status) {
+        String status,
+        String parseJobId,
+        String lastError) {
 }

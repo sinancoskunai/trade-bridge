@@ -1,4 +1,4 @@
-# API SURFACE (Phase 0/1 Skeleton)
+# API SURFACE (Current MVP Baseline)
 
 ## Auth
 
@@ -21,6 +21,16 @@
 - `PUT /seller/products/drafts/{draftId}`
 - `POST /seller/products/drafts/{draftId}/confirm`
 - `GET /buyer/products`
+
+Draft response now includes:
+
+- `parseJobId`
+- `lastError`
+
+## Parse Operations (Admin)
+
+- `GET /admin/parse-jobs?status=...`
+- `POST /admin/parse-jobs/{parseJobId}/requeue`
 
 ## AI Search (Stub)
 

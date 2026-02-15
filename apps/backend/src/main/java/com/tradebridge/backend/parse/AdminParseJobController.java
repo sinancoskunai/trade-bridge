@@ -1,0 +1,31 @@
+package com.tradebridge.backend.parse;
+
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/admin/parse-jobs")
+public class AdminParseJobController {
+
+    private final ParseJobService parseJobService;
+
+    public AdminParseJobController(ParseJobService parseJobService) {
+        this.parseJobService = parseJobService;
+    }
+
+    @GetMapping
+    public List<ParseJobResponse> list(@RequestParam(required = false) String status) {
+        return parseJobService.list(status);
+    }
+
+    @PostMapping("/{parseJobId}/requeue")
+    public ParseJobResponse requeue(@PathVariable String parseJobId) {
+        return parseJobService.requeue(parseJobId);
+    }
+}

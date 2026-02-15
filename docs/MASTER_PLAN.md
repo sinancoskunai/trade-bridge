@@ -46,6 +46,7 @@ Bu proje tamamen izole bir yapida kurulur ve tum teknik/urun kararlarini repo ic
 - CI/CD: `docs/CICD.md`
 - Guvenlik: `docs/SECURITY.md`
 - Faz plani: `docs/ROADMAP.md`
+- Durum ve takvim: `docs/PROJECT_PLAN.md`
 
 ## Codex Skill Yonetimi
 
@@ -175,3 +176,4 @@ Bu proje tamamen izole bir yapida kurulur ve tum teknik/urun kararlarini repo ic
 - Faz 0 tamamlandi.
 - Faz 1 backend auth/tenant baseline tamamlandi (JWT + DB + Flyway + audit).
 - Docker altyapisi ayakta (Postgres/Redis/MinIO).
+- Faz 3 baslatildi (upload persistence + async parse job + admin parse ops).
